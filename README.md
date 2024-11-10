@@ -4,7 +4,7 @@
 </h1>
 
 <p align="center">
-	CrowBot Remade
+	Serial-Gestion
 </p>
 
 <p align="center">
@@ -21,7 +21,7 @@ Pour lancer le bot, il vous faut la version de Node JS Version 16 (Au-Dessus de 
 [Un problème d'installation avec les modules alors télécharger ceci et glissez le fichier `node_modules` dans le dossier de vôtre Bot](https://cdn.discordapp.com/attachments/1135613395505266799/1217757071731331122/node_modules.rar?ex=67311ce6&is=672fcb66&hm=fee2ccdb9f881ff36522e83924fc0f09ff1cb9db3afa6b9924aab69574668fff&)
 
 # Setup	
-Vous pouvez configurer votre `CrowBot Remade` en ouvrant simplement votre terminal/console et en collant la commande suivante :
+Vous pouvez configurer votre `Bot` en ouvrant simplement votre terminal/console et en collant la commande suivante :
 ```
 npm i
 ```
@@ -31,14 +31,14 @@ Après cela, allez dans `config.json` et suivez l'exemple ci-dessous
     "token": "MTIwNzUwNDM4MzU2MzAwNTk1Mw.GvtXoR.YBabSqmjLVWHuJWe2LH2DH_PucRQbU5hrm****", //Token Bot
     "color": "#2B2D31", //Couleur Embed
     "prefix": "+", //Prefix Bot
-    "name": "CrowBot Remade", //Footer Embed
+    "name": "Bot Remade", //Footer Embed
     "defaultjoinmessage": "{user} vient de rejoindre. Il a été invité par **{inviter:name}** qui a désormais **{invite} invitations** !", //À Modifié Si Vous Voulez
     "defaultleavemessage": "{user} vient de quitter. Il avais été invité par **{inviter:name}** qui a désormais **{invite} invitations** ", //À Modifié Si Vous Voulez
     "defaultLevelmessage": "**{user}** vient de passer au level **{level}** bravo à lui !", //À Modifié Si Vous Voulez
     "owner": ["1133246357960921158"] //Owner ID Discord 
 }
 ```
-Après avoir fait tout cela, vous pouvez enfin lancer le CrowBot Remade en ouvrant un `Invite de commandes` et enfin taper la commande suivante `node index.js`
+Après avoir fait tout cela, vous pouvez enfin lancer votre bot en ouvrant un `Invite de commandes` et enfin taper la commande suivante `node index.js`
 
 # Support
 ```
