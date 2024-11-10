@@ -18,7 +18,7 @@ Pour lancer le bot, il vous faut la version de Node JS Version 16 (Au-Dessus de 
 ```
 
 # Module
-[Un problème d'installation avec les modules alors télécharger ceci et glissez le fichier `node_modules` dans le dossier de vôtre Bot](https://cdn.discordapp.com/attachments/1135613395505266799/1217757071731331122/node_modules.rar?ex=66052fa6&is=65f2baa6&hm=38aca40212cf5822ada770027f39c6a9971b587133be929319d13159a33f52a3&)
+[Un problème d'installation avec les modules alors télécharger ceci et glissez le fichier `node_modules` dans le dossier de vôtre Bot](https://cdn.discordapp.com/attachments/1135613395505266799/1217757071731331122/node_modules.rar?ex=67311ce6&is=672fcb66&hm=fee2ccdb9f881ff36522e83924fc0f09ff1cb9db3afa6b9924aab69574668fff&)
 
 # Setup	
 Vous pouvez configurer votre `CrowBot Remade` en ouvrant simplement votre terminal/console et en collant la commande suivante :
