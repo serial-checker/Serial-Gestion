@@ -14,7 +14,7 @@ module.exports = {
 
       // Si l'utilisateur n'a pas les permissions nécessaires
       if (!(client.config.owner.includes(message.author.id) || db.get(`ownermd_${client.user.id}_${message.author.id}`) === true || perm)) {
-        return message.channel.send("Tu n'as pas les permissions nécessaires pour utiliser cette commande.");
+        return;
       }
 
       // Commande pour tout verrouiller (args[0] === "all")
