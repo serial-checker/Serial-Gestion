@@ -14,7 +14,7 @@ module.exports = (client, message) => {
     if (logschannel) {
         const embed = new Discord.MessageEmbed()
             .setColor(color)
-            .setDescription(`**Message envoyé** dans <#${message.channel.id}> par ${message.author.tag} (${message.author.id})`)
+            .setDescription(`**Message supprimé** dans <#${message.channel.id}> par ${message.author.tag} (${message.author.id})`)
             .addField('Contenu', message.content || 'Aucun contenu (message vide)', false)
             .addField('ID du message', message.id, true)
             .addField('Date d\'envoi', message.createdAt.toLocaleString(), true)
