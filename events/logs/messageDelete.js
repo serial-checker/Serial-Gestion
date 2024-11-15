@@ -1,6 +1,7 @@
 const axios = require('axios');
 const db = require("quick.db");
 const Discord = require("discord.js");
+const client = new Discord.Client();
 const ms = require("ms");
 
 module.exports = (client, message) => {
@@ -12,49 +13,53 @@ module.exports = (client, message) => {
 
     // Si un canal de log est défini
     if (logschannel) {
-        const embed = new Discord.MessageEmbed()
+        const embedLog = new Discord.MessageEmbed()
             .setColor(color)
             .setDescription(`**Message supprimé** dans <#${message.channel.id}> par ${message.author.tag} (${message.author.id})`)
-            .addField('Contenu', message.content || 'Aucun contenu (message vide)', false)
             .addField('ID du message', message.id, true)
             .addField('Date d\'envoi', message.createdAt.toLocaleString(), true)
-            .setTimestamp(); // Ajoute un timestamp pour l'envoi du message
+            .setTimestamp();
 
-        // Si le message a des pièces jointes
-        if (message.attachments.size > 0) {
-            const files = message.attachments.map(attachment => attachment.url).join('\n');
-            embed.addField('Pièces jointes', files);
+        if (message.content) {
+            embedLog.addField('Contenu', message.content, false);
+        } else {
+            embedLog.addField('Contenu', 'Aucun contenu (message vide)', false);
         }
 
-        // Si le message a des mentions d'utilisateurs
-        if (message.mentions.users.size > 0) {
-            const mentions = message.mentions.users.map(user => user.tag).join(', ');
-            embed.addField('Mentions', mentions);
-        }
+        logschannel.send(embedLog).then(sentLogMessage => {
+            if (message.embeds.length > 0) {
+                message.embeds.forEach(embedMsg => {
+                    const recreatedEmbed = new Discord.MessageEmbed()
+                        .setColor(embedMsg.color || color)
+                        .setTitle(embedMsg.title || '')
+                        .setURL(embedMsg.url || '')
+                        .setDescription(embedMsg.description || '')
+                        .setThumbnail(embedMsg.thumbnail ? embedMsg.thumbnail.url : null)
+                        .setImage(embedMsg.image ? embedMsg.image.url : null)
+                        .setFooter(embedMsg.footer ? embedMsg.footer.text : '', embedMsg.footer ? embedMsg.footer.iconURL : '')
+                        .setAuthor(embedMsg.author ? embedMsg.author.name : '', embedMsg.author ? embedMsg.author.iconURL : '', embedMsg.author ? embedMsg.url : '')
+                        .setTimestamp(embedMsg.timestamp ? new Date(embedMsg.timestamp) : undefined);
 
-        // Si le message a des mentions de rôles
-        if (message.mentions.roles.size > 0) {
-            const roleMentions = message.mentions.roles.map(role => role.name).join(', ');
-            embed.addField('Mentions de rôles', roleMentions);
-        }
+                    if (embedMsg.fields.length > 0) {
+                        embedMsg.fields.forEach(field => {
+                            recreatedEmbed.addField(field.name, field.value, field.inline);
+                        });
+                    }
 
-        // Si le message a des réactions
-        if (message.reactions.cache.size > 0) {
-            const reactions = message.reactions.cache.map(reaction => `${reaction.emoji.name} (${reaction.count} réactions)`).join('\n');
-            embed.addField('Réactions', reactions);
-        }
+                    logschannel.send(recreatedEmbed).then(sentEmbed => {
+                        sentEmbed.react('🔄');
 
-        // Gestion des embeds dans le message
-        if (message.embeds.length > 0) {
-            // Pour chaque embed attaché au message, récupérer les informations de base
-            message.embeds.forEach(embedMsg => {
-                embed.addField('Embed', `Description : \n${embedMsg.description || 'Aucune description'}\n` +
-                    `Couleur : ${embedMsg.color ? `#${embedMsg.color.toString(16)}` : 'Aucune'}\n` +
-                    `URL : ${embedMsg.url || 'Aucune URL'}`);
-            });
-        }
+                        const filter = (reaction, user) => reaction.emoji.name === '🔄' && !user.bot;
+                        const collector = sentEmbed.createReactionCollector(filter, { max: 1, time: 60000 });
 
-        // Envoi de l'embed dans le canal de logs
-        logschannel.send(embed);
+                        collector.on('collect', (reaction, user) => {
+                            message.channel.send(recreatedEmbed).then(() => {
+                                logschannel.send(`L'embed a été renvoyé par ${user.tag}`);
+                            });
+                        });
+                    });
+                });
+            }
+        });
     }
 };
