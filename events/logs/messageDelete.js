@@ -1,7 +1,9 @@
 const axios = require('axios');
 const db = require("quick.db");
 const Discord = require("discord.js");
-const client = new Discord.Client();
+const client = new Discord.Client({
+    partials: ['MESSAGE', 'CHANNEL', 'REACTION'] // Activer les partials pour récupérer les messages supprimés
+});
 const ms = require("ms");
 
 module.exports = (client, message) => {
@@ -13,6 +15,20 @@ module.exports = (client, message) => {
 
     // Si un canal de log est défini
     if (logschannel) {
+        // Vérifier si le message est partiel et essayer de le récupérer
+        if (message.partial) {
+            message.fetch().catch(err => {
+                console.error('Impossible de récupérer le message supprimé :', err);
+                return; // Si le fetch échoue, on arrête l'exécution
+            });
+        }
+
+        // Si le message est validé, on continue
+        if (!message || !message.author) {
+            console.error('Message ou auteur non disponible, annulation du traitement.');
+            return; // Si le message ou l'auteur est invalide, on annule le traitement
+        }
+
         const embedLog = new Discord.MessageEmbed()
             .setColor(color)
             .setDescription(`**Message supprimé** dans <#${message.channel.id}> par ${message.author.tag} (${message.author.id})`)
