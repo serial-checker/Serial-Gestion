@@ -26,6 +26,7 @@ module.exports = (client, member, voiceChannel) => {
             .addField('Durée du partage', duration, true)
             .addField('Profil du membre', `[Cliquez ici pour voir son profil](https://discord.com/users/${member.id})`, true)
             .addField('Membres dans le salon', voiceChannel.members.map(m => m.user.username).join(', '), true) // Liste des membres dans le salon
+            .setFooter(`${client.config.name ? client.config.name : 'Bot'} | Log de stream`)
             .setTimestamp();
 
         // Envoi de l'embed dans le canal de logs
