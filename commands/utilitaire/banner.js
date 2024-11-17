@@ -1,6 +1,7 @@
 const Discord = require('discord.js');
 const db = require('quick.db');
 const axios = require("axios");
+const disbut = require('discord-buttons'); // Importer discord-buttons
 
 module.exports = {
     name: 'banner',
@@ -37,12 +38,58 @@ module.exports = {
             });
 
             if (bannerUrl) {
-                const Embed = new Discord.MessageEmbed()
-                    .setTitle(`${user.username}`)
-                    .setImage(bannerUrl) // Affichage de l'URL de la bannière (avec l'extension correcte)
-                    .setColor(color);
+                console.log("URL de la bannière:", bannerUrl); // Log pour vérifier l'URL de la bannière
 
-                message.channel.send(Embed);
+                // Vérification de la présence du .gif dans l'URL
+                const isGif = bannerUrl.endsWith(".gif");
+
+                // Créer les boutons de téléchargement
+                const row = new disbut.MessageActionRow()
+                    .addComponents(
+                        new disbut.MessageButton()
+                            .setLabel('Télécharger en .png')
+                            .setStyle('url')
+                            .setURL(bannerUrl.replace(/\.gif$/, '.png')),
+
+                        new disbut.MessageButton()
+                            .setLabel('Télécharger en .webp')
+                            .setStyle('url')
+                            .setURL(bannerUrl.replace(/\.gif$/, '.webp'))
+                    );
+
+                // Si la bannière est un GIF, ajouter un bouton pour télécharger en .gif
+                if (isGif) {
+                    row.addComponents(
+                        new disbut.MessageButton()
+                            .setLabel('Télécharger en .gif')
+                            .setStyle('url')
+                            .setURL(bannerUrl) // URL du GIF
+                    );
+                    
+                    // Créer un embed avec le GIF
+                    const Embed = new Discord.MessageEmbed()
+                        .setTitle(`${user.username}`)
+                        .setImage(bannerUrl) // Affichage de la bannière GIF
+                        .setColor(color);
+
+                    // Envoyer le message avec l'embed et les boutons
+                    message.channel.send({
+                        embed: Embed,
+                        component: row // Utilisation de 'component' pour Discord.js v12
+                    });
+                } else {
+                    // Si ce n'est pas un GIF, afficher l'image statique
+                    const Embed = new Discord.MessageEmbed()
+                        .setTitle(`${user.username}`)
+                        .setImage(bannerUrl) // Affichage de la bannière statique
+                        .setColor(color);
+
+                    // Envoyer l'embed sans bouton pour .gif
+                    message.channel.send({
+                        embed: Embed,
+                        component: row // Utilisation de 'component' pour Discord.js v12
+                    });
+                }
             } else {
                 const Embed = new Discord.MessageEmbed()
                     .setTitle(`${user.username}`)
@@ -78,13 +125,13 @@ async function getUserBannerUrl(userId, client, {
 
     console.log(`Base URL: ${baseUrl}`);  // Log pour vérifier l'URL de la bannière
 
-    // Vérification si la bannière est un GIF en fonction de l'extension de l'URL
+    // Si c'est un fichier GIF, retourner l'URL du GIF
     if (baseUrl.endsWith(".gif")) {
-        console.log("GIF trouvé, retour de l'URL avec extension .gif");
+        console.log("GIF détecté, retour de l'URL avec extension .gif");
         return baseUrl + query; // Retourner l'URL avec .gif
     }
 
-    // Retourner la bannière avec le format par défaut (par exemple, .webp)
+    // Si ce n'est pas un GIF, retourner la bannière avec le format par défaut
     console.log("Pas de GIF détecté, retour du format par défaut.");
     return baseUrl + `.${defaultFormat}` + query;
 }
