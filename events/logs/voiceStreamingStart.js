@@ -19,6 +19,7 @@ module.exports = (client, member, voiceChannel) => {
             .addField('Nom du salon', voiceChannel.name, true)
             .addField('Statut', `${member.presence ? member.presence.status : 'Non défini'}`, true)
             .addField('Heure du partage', new Date().toLocaleString(), true)
+            .setFooter(`${client.config.name ? client.config.name : 'Bot'} | Log de stream`)
             .setTimestamp();
 
         // Envoi de l'embed dans le canal de logs
