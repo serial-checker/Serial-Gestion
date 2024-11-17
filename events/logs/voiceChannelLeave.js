@@ -21,6 +21,7 @@ module.exports = async (client, member, channel) => {
             .addField('Statut', `${member.presence ? member.presence.status : 'Non défini'}`, true)
             .addField('Ancien salon', member.voice.channel ? `#${member.voice.channel.name} (ID: ${member.voice.channel.id})` : 'Aucun', true)
             .addField('Heure de déconnexion', new Date().toLocaleString(), true)
+            .setFooter(`${client.config.name ? client.config.name : 'Bot'} | Log de salon vocal`)
             .setTimestamp();
 
         // Envoi de l'embed dans le canal de logs
