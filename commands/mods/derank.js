@@ -21,9 +21,31 @@ module.exports = {
         if (client.config.owner.includes(message.author.id) || db.get(`ownermd_${client.user.id}_${message.author.id}`) === true || perm) {
 
             // Si un ID ou une mention est fournie
+            let user = null;
+            
             if (args[0]) {
-                let user = await message.guild.members.fetch(args[0]) || message.mentions.members.first();
-                if (!user) return;
+                // Vérifier si l'argument est une mention ou un ID
+                if (message.mentions.members.size > 0) {
+                    user = message.mentions.members.first(); // Utilisation de la mention
+                } else {
+                    user = await message.guild.members.fetch(args[0]).catch(() => null); // Utilisation de l'ID
+                }
+
+                // Vérifier si l'utilisateur a été trouvé
+                if (!user) {
+                    return message.channel.send(`Aucun membre trouvé pour \`${args[0] || "rien"}\``);
+                }
+
+                // Empêcher le derank de l'auteur du message ou de certains utilisateurs
+                if (user.id === message.author.id) {
+                    return message.channel.send(`Vous n'avez pas la permission de **derank** *(vous ne pouvez pas vous derank vous même)* <@${user.id}>`);
+                }
+                if (user.roles.highest.position >= message.member.roles.highest.position) {
+                    return message.channel.send(`Vous n'avez pas la permission de **derank** <@${user.id}> *(le membre a un rôle plus élevé que vous)*`);
+                }
+                if (client.config.owner.includes(user.id)) {
+                    return message.channel.send(`Vous n'avez pas la permission de **derank** *(vous ne pouvez pas derank un owner)* <@${user.id}>`);
+                }
 
                 // Effectuer l'action de derank (retirer tous les rôles sauf @everyone)
                 try {
