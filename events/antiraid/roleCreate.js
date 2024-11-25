@@ -1,108 +1,114 @@
 const axios = require('axios');
-const db = require("quick.db")
-const {
-	MessageEmbed
-} = require("discord.js");
-const ms = require("ms")
+const db = require("quick.db");
+const { MessageEmbed } = require("discord.js");
 
-module.exports = (client, role) => {
-	const guild = role.guild
-	const color = db.get(`color_${guild.id}`) === null ? client.config.color : db.get(`color_${guild.id}`)
+module.exports = async (client, role) => {
+    const guild = role.guild;
+    const color = db.get(`color_${guild.id}`) || client.config.color;
+    const raidlog = guild.channels.cache.get(db.get(`${guild.id}.raidlog`));
 
+    // Vérifier les permissions du bot avant de procéder
+    if (!guild.me.permissions.has(['VIEW_AUDIT_LOG', 'MANAGE_ROLES', 'BAN_MEMBERS'])) {
+        console.error("Le bot n'a pas les permissions nécessaires pour gérer cet événement.");
+        return;
+    }
 
-	axios.get(`https://discord.com/api/v9/guilds/${guild.id}/audit-logs?ilimit=1&action_type=30`, {
-		headers: {
-			Authorization: `Bot ${client.config.token}`
-		}
-	}).then(response => {
-		const raidlog = guild.channels.cache.get(db.get(`${guild.id}.raidlog`))
-		if (response.data && response.data.audit_log_entries[0].user_id) {
-			let perm = ""
-			if (db.get(`rolescreatewl_${guild.id}`) === null) perm = client.user.id === response.data.audit_log_entries[0].user_id || guild.owner.id === response.data.audit_log_entries[0].user_id || client.config.owner.includes(response.data.audit_log_entries[0].user_id) || db.get(`ownermd_${client.user.id}_${response.data.audit_log_entries[0].user_id}`) === true || db.get(`wlmd_${guild.id}_${response.data.audit_log_entries[0].user_id}`) === true
-			if (db.get(`rolescreatewl_${guild.id}`) === true) perm = client.user.id === response.data.audit_log_entries[0].user_id || guild.owner.id === response.data.audit_log_entries[0].user_id || client.config.owner.includes(response.data.audit_log_entries[0].user_id) || db.get(`ownermd_${client.user.id}_${response.data.audit_log_entries[0].user_id}`) === true
-			if (db.get(`rolescreate_${guild.id}`) === true && !perm) {
-				if (db.get(`rolescreatesanction_${guild.id}`) === "ban") {
+    try {
+        // Récupérer les logs d'audit
+        const logs = await guild.fetchAuditLogs({ limit: 1, type: "ROLE_CREATE" });
+        const entry = logs.entries.first();
 
-					axios({
-						url: `https://discord.com/api/v9/guilds/${guild.id}/bans/${response.data.audit_log_entries[0].user_id}`,
-						method: 'PUT',
-						headers: {
-							Authorization: `bot ${client.config.token}`
-						},
-						data: {
-							delete_message_days: '1',
-							reason: 'AntiRôle Create'
-						}
-					}).then(() => {
-						axios({
-							url: `https://discord.com/api/v9/guilds/${guild.id}/roles/${role.id}`,
-							method: "DELETE",
-							headers: {
-								Authorization: `Bot ${client.config.token}`
-							}
-						})
-						if (raidlog) return raidlog.send(new MessageEmbed().setColor(color).setDescription(`<@${response.data.audit_log_entries[0].user_id}> a crée le rôle \`${role.name}\`, il a été **ban** !`))
-					}).catch(() => {
-						axios({
-							url: `https://discord.com/api/v9/guilds/${guild.id}/roles/${role.id}`,
-							method: "DELETE",
-							headers: {
-								Authorization: `Bot ${client.config.token}`
-							}
-						})
-						if (raidlog) return raidlog.send(new MessageEmbed().setColor(color).setDescription(`<@${response.data.audit_log_entries[0].user_id}> a crée le rôle \`${role.name}\`, mais il n'a pas pu être **ban** !`))
+        if (!entry || !entry.executor) {
+            console.log("Aucune entrée d'audit valide trouvée pour la création du rôle.");
+            return;
+        }
 
-					})
-				} else if (db.get(`rolescreatesanction_${guild.id}`) === "kick") {
-					guild.members.cache.get(response.data.audit_log_entries[0].user_id).kick().then(() => {
-						axios({
-							url: `https://discord.com/api/v9/guilds/${guild.id}/roles/${role.id}`,
-							method: "DELETE",
-							headers: {
-								Authorization: `Bot ${client.config.token}`
-							}
-						})
-						if (raidlog) return raidlog.send(new MessageEmbed().setColor(color).setDescription(`<@${response.data.audit_log_entries[0].user_id}> a crée le rôle \`${role.name}\`, il a été **kick** !`))
-					}).catch(() => {
-						axios({
-							url: `https://discord.com/api/v9/guilds/${guild.id}/roles/${role.id}`,
-							method: "DELETE",
-							headers: {
-								Authorization: `Bot ${client.config.token}`
-							}
-						})
-						if (raidlog) return raidlog.send(new MessageEmbed().setColor(color).setDescription(`<@${response.data.audit_log_entries[0].user_id}> a crée le rôle \`${role.name}\`, mais il n'a pas pu être **kick** !`))
-					})
-				} else if (db.get(`rolescreatesanction_${guild.id}`) === "derank") {
+        const executor = entry.executor;
 
-					guild.members.cache.get(response.data.audit_log_entries[0].user_id).roles.set([]).then(() => {
+        // Vérification des permissions de l'exécuteur
+        let isPermitted = false;
+        if (db.get(`rolescreatewl_${guild.id}`) === null) {
+            isPermitted = client.user.id === executor.id ||
+                guild.ownerId === executor.id ||
+                client.config.owner.includes(executor.id) ||
+                db.get(`ownermd_${client.user.id}_${executor.id}`) === true ||
+                db.get(`wlmd_${guild.id}_${executor.id}`) === true;
+        } else if (db.get(`rolescreatewl_${guild.id}`) === true) {
+            isPermitted = client.user.id === executor.id ||
+                guild.ownerId === executor.id ||
+                client.config.owner.includes(executor.id) ||
+                db.get(`ownermd_${client.user.id}_${executor.id}`) === true;
+        }
 
-						axios({
-							url: `https://discord.com/api/v9/guilds/${guild.id}/roles/${role.id}`,
-							method: "DELETE",
-							headers: {
-								Authorization: `Bot ${client.config.token}`
-							}
-						})
-						if (raidlog) return raidlog.send(new MessageEmbed().setColor(color).setDescription(`<@${response.data.audit_log_entries[0].user_id}> a crée le rôle \`${role.name}\`, il a été **derank** !`))
-					}).catch(() => {
-						axios({
-							url: `https://discord.com/api/v9/guilds/${guild.id}/roles/${role.id}`,
-							method: "DELETE",
-							headers: {
-								Authorization: `Bot ${client.config.token}`
-							}
-						})
-						if (raidlog) return raidlog.send(new MessageEmbed().setColor(color).setDescription(`<@${response.data.audit_log_entries[0].user_id}> a crée le rôle \`${role.name}\`, mais il n'a pas pu être **derank** !`))
-					})
-				}
+        if (db.get(`rolescreate_${guild.id}`) && !isPermitted) {
+            const sanction = db.get(`rolescreatesanction_${guild.id}`);
+            const member = guild.members.cache.get(executor.id);
 
+            if (!member) {
+                if (raidlog) {
+                    raidlog.send(new MessageEmbed()
+                        .setColor(color)
+                        .setDescription(`Impossible de trouver l'exécuteur <@${executor.id}> pour appliquer la sanction.`));
+                }
+                return;
+            }
 
-			}
-		}
-	})
+            // Supprimer le rôle créé
+            await role.delete("AntiRôle Create - Création non autorisée")
+                .catch(err => console.error(`Erreur lors de la suppression du rôle: ${err.message}`));
 
-
-
-
+            // Appliquer la sanction
+            if (sanction === "ban") {
+                try {
+                    await member.ban({ days: 1, reason: "AntiRôle Create - Création non autorisée" });
+                    if (raidlog) {
+                        raidlog.send(new MessageEmbed()
+                            .setColor(color)
+                            .setDescription(`<@${executor.id}> a créé le rôle \`${role.name}\`, il a été **banni** !`));
+                    }
+                } catch (err) {
+                    console.error(`Erreur lors du bannissement de ${executor.id}: ${err.message}`);
+                    if (raidlog) {
+                        raidlog.send(new MessageEmbed()
+                            .setColor(color)
+                            .setDescription(`<@${executor.id}> a créé le rôle \`${role.name}\`, mais il n'a pas pu être **banni**.`));
+                    }
+                }
+            } else if (sanction === "kick") {
+                try {
+                    await member.kick("AntiRôle Create - Création non autorisée");
+                    if (raidlog) {
+                        raidlog.send(new MessageEmbed()
+                            .setColor(color)
+                            .setDescription(`<@${executor.id}> a créé le rôle \`${role.name}\`, il a été **expulsé** !`));
+                    }
+                } catch (err) {
+                    console.error(`Erreur lors de l'expulsion de ${executor.id}: ${err.message}`);
+                    if (raidlog) {
+                        raidlog.send(new MessageEmbed()
+                            .setColor(color)
+                            .setDescription(`<@${executor.id}> a créé le rôle \`${role.name}\`, mais il n'a pas pu être **expulsé**.`));
+                    }
+                }
+            } else if (sanction === "derank") {
+                try {
+                    await member.roles.set([]);
+                    if (raidlog) {
+                        raidlog.send(new MessageEmbed()
+                            .setColor(color)
+                            .setDescription(`<@${executor.id}> a créé le rôle \`${role.name}\`, il a été **déranké** !`));
+                    }
+                } catch (err) {
+                    console.error(`Erreur lors du dérankage de ${executor.id}: ${err.message}`);
+                    if (raidlog) {
+                        raidlog.send(new MessageEmbed()
+                            .setColor(color)
+                            .setDescription(`<@${executor.id}> a créé le rôle \`${role.name}\`, mais il n'a pas pu être **déranké**.`));
+                    }
+                }
+            }
+        }
+    } catch (error) {
+        console.error("Erreur lors du traitement des logs d'audit ou des actions :", error.message);
+    }
 };
