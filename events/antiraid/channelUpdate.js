@@ -1,83 +1,145 @@
-const axios = require('axios');
-const db = require("quick.db")
-const {
-	MessageEmbed
-} = require("discord.js");
-const ms = require("ms")
+const axios = require("axios");
+const db = require("quick.db");
+const { MessageEmbed } = require("discord.js");
 
 module.exports = async (client, oldChannel, newChannel) => {
-	const guild = oldChannel.guild
-	const color = db.get(`color_${guild.id}`) === null ? client.config.color : db.get(`color_${guild.id}`)
-	const raidlog = guild.channels.cache.get(db.get(`${guild.id}.raidlog`))
+    const guild = oldChannel.guild;
+    const color = db.get(`color_${guild.id}`) || client.config.color;
+    const raidlog = guild.channels.cache.get(db.get(`${guild.id}.raidlog`));
 
-	axios.get(`https://discord.com/api/v9/guilds/${oldChannel.guild.id}/audit-logs?ilimit=1&action_type=11`, {
-		headers: {
-			Authorization: `Bot ${client.config.token}`
-		}
-	}).then(response => {
-		if (response.data && response.data.audit_log_entries[0].user_id) {
-			let perm = ""
-			if (db.get(`channelsmodwl_${guild.id}`) === null) perm = client.user.id === response.data.audit_log_entries[0].user_id || guild.owner.id === response.data.audit_log_entries[0].user_id || client.config.owner.includes(response.data.audit_log_entries[0].user_id) || db.get(`ownermd_${client.user.id}_${response.data.audit_log_entries[0].user_id}`) === true || db.get(`wlmd_${guild.id}_${response.data.audit_log_entries[0].user_id}`) === true
-			if (db.get(`channelsmodwl_${guild.id}`) === true) perm = client.user.id === response.data.audit_log_entries[0].user_id || guild.owner.id === response.data.audit_log_entries[0].user_id || client.config.owner.includes(response.data.audit_log_entries[0].user_id) || db.get(`ownermd_${client.user.id}_${response.data.audit_log_entries[0].user_id}`) === true
-			if (db.get(`channelsmod_${guild.id}`) === true && !perm) {
-				if (db.get(`channelsmodsanction_${guild.id}`) === "ban") {
-					axios({
-						url: `https://discord.com/api/v9/guilds/${guild.id}/bans/${response.data.audit_log_entries[0].user_id}`,
-						method: 'PUT',
-						headers: {
-							Authorization: `bot ${client.config.token}`
-						},
-						data: {
-							delete_message_days: '1',
-							reason: 'AntiChannel Update'
-						}
-					}).then(() => {
+    try {
+        // Audit Logs pour récupérer l'auteur de la modification
+        const auditLogs = await guild.fetchAuditLogs({ type: "CHANNEL_UPDATE", limit: 1 });
+        const logEntry = auditLogs.entries.first();
 
-						if (raidlog) return raidlog.send(new MessageEmbed().setColor(color).setDescription(`<@${response.data.audit_log_entries[0].user_id}> a modifier le salon ${oldChannel}, il a été **ban** !`))
-					}).catch(() => {
+        if (!logEntry) {
+            console.log("Aucun log d'audit trouvé.");
+            return;
+        }
 
-						if (raidlog) return raidlog.send(new MessageEmbed().setColor(color).setDescription(`<@${response.data.audit_log_entries[0].user_id}> a modifier le salon ${oldChannel}, mais il n'a pas pu être **ban** !`))
+        const { executor, createdTimestamp } = logEntry;
+        if (!executor) {
+            console.log("Aucun utilisateur détecté dans les logs d'audit.");
+            return;
+        }
 
-					})
-				} else if (db.get(`channelsmodsanction_${guild.id}`) === "kick") {
-					guild.members.cache.get(response.data.audit_log_entries[0].user_id).kick().then(() => {
+        const userId = executor.id;
 
-						if (raidlog) return raidlog.send(new MessageEmbed().setColor(color).setDescription(`<@${response.data.audit_log_entries[0].user_id}> a modifier le salon ${oldChannel}, il a été **kick** !`))
-					}).catch(() => {
+        // Empêcher les actions multiples sur le même événement
+        const lastTimestamp = db.get(`lastChannelUpdate_${guild.id}_${userId}`) || 0;
+        if (createdTimestamp === lastTimestamp) {
+            //console.log("Action déjà traitée pour cet utilisateur.");
+            return;
+        }
+        db.set(`lastChannelUpdate_${guild.id}_${userId}`, createdTimestamp);
 
-						if (raidlog) return raidlog.send(new MessageEmbed().setColor(color).setDescription(`<@${response.data.audit_log_entries[0].user_id}> a modifier le salon ${oldChannel}, mais il n'a pas pu être **kick** !`))
-					})
-				} else if (db.get(`channelsmodsanction_${guild.id}`) === "derank") {
+        // Vérification de la whitelist
+        const isWhitelisted =
+            client.user.id === userId ||
+            guild.ownerId === userId ||
+            client.config.owner.includes(userId) ||
+            db.get(`ownermd_${client.user.id}_${userId}`) ||
+            db.get(`wlmd_${guild.id}_${userId}`);
 
-					guild.members.cache.get(response.data.audit_log_entries[0].user_id).roles.set([]).then(() => {
+        if (isWhitelisted) {
+            console.log(`Utilisateur ${userId} est whitelisté, aucune action requise.`);
+            return;
+        }
 
+        // Vérifier si la protection des salons est activée
+        if (!db.get(`channelsmod_${guild.id}`)) {
+            console.log("Système de protection des salons désactivé.");
+            return;
+        }
 
-						if (raidlog) return raidlog.send(new MessageEmbed().setColor(color).setDescription(`<@${response.data.audit_log_entries[0].user_id}> a modifier le salon ${oldChannel}, il a été **derank** !`))
-					}).catch(() => {
+        // Application de la sanction
+        const sanction = db.get(`channelsmodsanction_${guild.id}`) || "none";
+        const sanctionApplied = await applySanction(guild, userId, sanction);
 
-						if (raidlog) return raidlog.send(new MessageEmbed().setColor(color).setDescription(`<@${response.data.audit_log_entries[0].user_id}> a modifier le salon ${oldChannel}, mais il n'a pas pu être **derank** !`))
-					})
-				}
+        // Restauration du salon
+        const restoreSuccess = await restoreChannel(oldChannel, newChannel);
 
-				newChannel.edit({
-					name: oldChannel.name,
-					permissions: oldChannel.permissionsOverwrites,
-					type: oldChannel.type,
-					topic: oldChannel.withTopic,
-					nsfw: oldChannel.nsfw,
-					birate: oldChannel.bitrate,
-					userLimit: oldChannel.userLimit,
-					rateLimitPerUser: oldChannel.rateLimitPerUser,
-					position: oldChannel.rawPosition,
-					reason: `Antichannel`
-				})
-				newChannel.overwritePermissions(oldChannel.permissionOverwrites)
-			}
+        // Envoi de logs
+        if (raidlog) {
+            const sanctionMessage = sanctionApplied ? `a été **${sanction}**` : `n'a pas pu être **${sanction}**`;
+            const restoreMessage = restoreSuccess ? "restauré" : "n'a pas pu être restauré";
 
-		}
+            raidlog.send(
+                new MessageEmbed()
+                    .setColor(color)
+                    .setDescription(
+                        `<@${userId}> a modifié le salon **${oldChannel.name}**. Il ${sanctionMessage}, et le salon a été ${restoreMessage}.`
+                    )
+            );
+        }
+    } catch (error) {
+        console.error("Erreur dans l'événement channelUpdate :", error);
 
-	});
+        // Envoi d'une log en cas d'erreur
+        if (raidlog) {
+            raidlog.send(
+                new MessageEmbed()
+                    .setColor(color)
+                    .setDescription(
+                        `Une erreur est survenue lors du traitement d'une modification sur le salon **${oldChannel.name}**.`
+                    )
+            );
+        }
+    }
+};
 
+// Fonction pour appliquer une sanction
+async function applySanction(guild, userId, action) {
+    try {
+        const member = await guild.members.fetch(userId).catch(() => null);
+        if (!member) return false;
 
+        if (action === "ban") {
+            await guild.members.ban(userId, { days: 1, reason: "AntiChannel Update" });
+        } else if (action === "kick") {
+            await member.kick("AntiChannel Update");
+        } else if (action === "derank") {
+            await member.roles.set([]);
+        } else {
+            console.log("Aucune sanction à appliquer.");
+            return false;
+        }
 
+        console.log(`Sanction ${action} appliquée à l'utilisateur ${userId}.`);
+        return true;
+    } catch (err) {
+        console.error(`Erreur lors de la sanction ${action} :`, err);
+        return false;
+    }
+}
+
+// Fonction pour restaurer les propriétés du salon
+async function restoreChannel(oldChannel, newChannel) {
+    try {
+        await newChannel.edit({
+            name: oldChannel.name,
+            topic: oldChannel.topic || null,
+            nsfw: oldChannel.nsfw || false,
+            bitrate: oldChannel.bitrate || null,
+            userLimit: oldChannel.userLimit || null,
+            rateLimitPerUser: oldChannel.rateLimitPerUser || null,
+            position: oldChannel.rawPosition,
+            reason: "AntiChannel Update",
+        });
+
+        const overwrites = oldChannel.permissionOverwrites.cache.map(overwrite => ({
+            id: overwrite.id,
+            allow: overwrite.allow.bitfield,
+            deny: overwrite.deny.bitfield,
+            type: overwrite.type,
+        }));
+
+        await newChannel.permissionOverwrites.set(overwrites);
+
+        console.log(`Le salon ${oldChannel.name} a été restauré avec succès.`);
+        return true;
+    } catch (err) {
+        console.error("Erreur lors de la restauration du salon :", err);
+        return false;
+    }
 }
