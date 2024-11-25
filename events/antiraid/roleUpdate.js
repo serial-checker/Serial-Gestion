@@ -1,138 +1,80 @@
-const axios = require('axios');
-const db = require("quick.db")
-const {
-    MessageEmbed
-} = require("discord.js");
-const ms = require("ms")
+const { MessageEmbed } = require("discord.js");
+const db = require("quick.db");
 
 module.exports = async (client, oldRole, newRole) => {
     const guild = oldRole.guild;
-    const color = db.get(`color_${guild.id}`) === null ? client.config.color : db.get(`color_${guild.id}`)
+    const color = db.get(`color_${guild.id}`) || client.config.color;
 
-	// -- Audit Logs
-	axios.get(`https://discord.com/api/v9/guilds/${guild.id}/audit-logs?ilimit=1&action_type=32`, {
-		headers: {
-			Authorization: `Bot ${client.config.token}`
-		}
+    try {
+        // Récupération des logs d'audit
+        const auditLogs = await guild.fetchAuditLogs({ type: 'ROLE_UPDATE', limit: 1 });
+        const logEntry = auditLogs.entries.first();
 
-	}).then(response => {
-		const raidlog = guild.channels.cache.get(db.get(`${guild.id}.raidlog`))
-		if (response.data && response.data.audit_log_entries[0].user_id) {
-        let perm = ""
-        if (db.get(`rolesmodwl_${guild.id}`) === null) perm = client.user.id === response.data.audit_log_entries[0].user_id || guild.owner.id === response.data.audit_log_entries[0].user_id || client.config.owner.includes(response.data.audit_log_entries[0].user_id) || db.get(`ownermd_${client.user.id}_${response.data.audit_log_entries[0].user_id}`) === true || db.get(`wlmd_${guild.id}_${response.data.audit_log_entries[0].user_id}`) === true
-        if (db.get(`rolesmodwl_${guild.id}`) === true) perm = client.user.id === response.data.audit_log_entries[0].user_id || guild.owner.id === response.data.audit_log_entries[0].user_id || client.config.owner.includes(response.data.audit_log_entries[0].user_id) || db.get(`ownermd_${client.user.id}_${response.data.audit_log_entries[0].user_id}`) === true
-        if (db.get(`rolesmod_${guild.id}`) === true && !perm) {
-            if (db.get(`rolesmodsanction_${guild.id}`) === "ban") {
-                
-                axios({
-                    url: `https://discord.com/api/v9/guilds/${guild.id}/bans/${response.data.audit_log_entries[0].user_id}`,
-                    method: 'PUT',
-                    headers: {
-                        Authorization: `bot ${client.config.token}`
-                    },
-                    data: {
-                        delete_message_days: '1',
-                        reason: `AntiRôle Update`
-                    }
+        if (!logEntry) return console.log('Aucune entrée d\'audit trouvée pour cette mise à jour de rôle.');
 
-                }).then(() => {
-                    newRole.edit({
-                        data: {
-                            name: oldRole.name,
-                            color: oldRole.hexColor,
-                            permissions: oldRole.permissions,
-                            hoist: oldRole.hoist,
-                            mentionable: oldRole.mentionable,
-                            position: oldRole.rawPosition,
-                            highest: oldRole.highest,
-                            reason: `AntiRoleUpdate`
-                        }
+        const userId = logEntry.executor.id;
 
-                    })
-                    if (raidlog) return raidlog.send(new MessageEmbed().setColor(color).setDescription(`<@${response.data.audit_log_entries[0].user_id}> a modifier le rôle ${oldRole}, il a été **ban** !`));
-                }).catch(() => {
-                    newRole.edit({
-                        data: {
-                            name: oldRole.name,
-                            color: oldRole.hexColor,
-                            permissions: oldRole.permissions,
-                            hoist: oldRole.hoist,
-                            mentionable: oldRole.mentionable,
-                            position: oldRole.rawPosition,
-                            highest: oldRole.highest,
-                            reason: `AntiRoleUpdate`
-                        }
+        // Vérifier si l'exécuteur est le bot
+        if (userId === client.user.id) return;
 
-                    })
-                    if (raidlog) return raidlog.send(new MessageEmbed().setColor(color).setDescription(`<@${response.data.audit_log_entries[0].user_id}> a modifier le rôle ${oldRole}, mais il n'a pas pu être **ban** !`));
+        // Récupérer le canal de logs de raid
+        const raidlog = guild.channels.cache.get(db.get(`${guild.id}.raidlog`));
 
-                })
-            } else if (db.get(`rolesmodsanction_${guild.id}`) === "kick") {
-                guild.members.cache.get(response.data.audit_log_entries[0].user_id).kick().then(() => {
-                    newRole.edit({
-                        data: {
-                            name: oldRole.name,
-                            color: oldRole.hexColor,
-                            permissions: oldRole.permissions,
-                            hoist: oldRole.hoist,
-                            mentionable: oldRole.mentionable,
-                            position: oldRole.rawPosition,
-                            highest: oldRole.highest,
-                            reason: `AntiRoleUpdate`
-                        }
+        // Vérifier les permissions/whitelist
+        const isWhitelisted = client.user.id === userId ||
+                              guild.ownerID === userId ||
+                              client.config.owner.includes(userId) ||
+                              db.get(`ownermd_${client.user.id}_${userId}`) ||
+                              db.get(`wlmd_${guild.id}_${userId}`);
 
-                    })
-                    if (raidlog) return raidlog.send(new MessageEmbed().setColor(color).setDescription(`<@${response.data.audit_log_entries[0].user_id}> a modifier le rôle ${oldRole}, il a été **kick** !`));
-                }).catch(() => {
-                    newRole.edit({
-                        data: {
-                            name: oldRole.name,
-                            color: oldRole.hexColor,
-                            permissions: oldRole.permissions,
-                            hoist: oldRole.hoist,
-                            mentionable: oldRole.mentionable,
-                            position: oldRole.rawPosition,
-                            highest: oldRole.highest,
-                            reason: `AntiRoleUpdate`
-                        }
+        if (!isWhitelisted && db.get(`rolesmod_${guild.id}`)) {
+            const sanction = db.get(`rolesmodsanction_${guild.id}`) || "none";
 
-                    })
-                    if (raidlog) return raidlog.send(new MessageEmbed().setColor(color).setDescription(`<@${response.data.audit_log_entries[0].user_id}> a modifier le rôle ${oldRole}, mais il n'a pas pu être **kick** !`));
-                })
-            } else if (db.get(`rolesmodsanction_${guild.id}`) === "derank") {
-                guild.members.cache.get(response.data.audit_log_entries[0].user_id).roles.set([]).then(() => {
-                    newRole.edit({
-                        data: {
-                            name: oldRole.name,
-                            color: oldRole.hexColor,
-                            permissions: oldRole.permissions,
-                            hoist: oldRole.hoist,
-                            mentionable: oldRole.mentionable,
-                            position: oldRole.rawPosition,
-                            highest: oldRole.highest,
-                            reason: `AntiRoleUpdate`
-                        }
+            // Appliquer la sanction appropriée
+            const success = await applySanction(guild, userId, sanction);
 
-                    })
-                    if (raidlog) return raidlog.send(new MessageEmbed().setColor(color).setDescription(`<@${response.data.audit_log_entries[0].user_id}> a modifier le rôle ${oldRole}, il a été **derank** !`));
-                }).catch(() => {
-                    newRole.edit({
-                        data: {
-                            name: oldRole.name,
-                            color: oldRole.hexColor,
-                            permissions: oldRole.permissions,
-                            hoist: oldRole.hoist,
-                            mentionable: oldRole.mentionable,
-                            position: oldRole.rawPosition,
-                            highest: oldRole.highest,
-                            reason: `AntiRoleUpdate`
-                        }
+            // Restaurer les propriétés du rôle
+            await newRole.edit({
+                name: oldRole.name,
+                color: oldRole.color,
+                permissions: oldRole.permissions,
+                hoist: oldRole.hoist,
+                mentionable: oldRole.mentionable,
+                position: oldRole.rawPosition
+            });
 
-                    })
-                    if (raidlog) return raidlog.send(new MessageEmbed().setColor(color).setDescription(`<@${response.data.audit_log_entries[0].user_id}> a modifier le rôle ${oldRole}, mais il n'a pas pu être **derank** !`));
-                })
+            // Envoyer un message de log si nécessaire
+            if (raidlog) {
+                const action = success ? sanction : `n'a pas pu être ${sanction}`;
+                raidlog.send(new MessageEmbed()
+                    .setColor(color)
+                    .setDescription(`<@${userId}> a modifié le rôle ${oldRole.name}, il a été ${action} !`)
+                );
             }
         }
+    } catch (err) {
+        console.error('Erreur dans l\'événement roleUpdate:', err);
+    }
+};
+
+async function applySanction(guild, userId, action) {
+    try {
+        const member = await guild.members.fetch(userId).catch(() => null);
+        if (!member) return false;
+
+        if (action === 'ban') {
+            await guild.members.ban(userId, { days: 1, reason: 'AntiRoleUpdate' });
+        } else if (action === 'kick') {
+            await member.kick('AntiRoleUpdate');
+        } else if (action === 'derank') {
+            await member.roles.set([]);
+        } else {
+            return false; // Aucune action
+        }
+
+        return true;
+    } catch (err) {
+        console.error(`Erreur lors de la sanction ${action}:`, err);
+        return false;
     }
 }
-    )}
