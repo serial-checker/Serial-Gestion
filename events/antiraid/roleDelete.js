@@ -1,148 +1,140 @@
-const axios = require('axios');
-const db = require("quick.db")
-const {
-	MessageEmbed
-} = require("discord.js");
-const ms = require("ms")
+const db = require("quick.db");
+const { MessageEmbed } = require("discord.js");
 
-module.exports = (client, role) => {
-	const guild = role.guild
-	const color = db.get(`color_${guild.id}`) === null ? client.config.color : db.get(`color_${guild.id}`)
+module.exports = async (client, role) => {
+    const guild = role.guild;
+    const color = db.get(`color_${guild.id}`) || client.config.color;
+    const raidlog = guild.channels.cache.get(db.get(`${guild.id}.raidlog`));
 
+    // Vérification des permissions du bot
+    if (!guild.me.permissions.has(['VIEW_AUDIT_LOG', 'MANAGE_ROLES', 'BAN_MEMBERS'])) {
+        console.error("Le bot n'a pas les permissions nécessaires pour gérer cet événement.");
+        return;
+    }
 
+    try {
+        // Récupérer les logs d'audit
+        const logs = await guild.fetchAuditLogs({ limit: 1, type: "ROLE_DELETE" });
+        const entry = logs.entries.first();
 
-	// -- Audit Logs
-	axios.get(`https://discord.com/api/v9/guilds/${guild.id}/audit-logs?ilimit=1&action_type=32`, {
-		headers: {
-			Authorization: `Bot ${client.config.token}`
-		}
-	}).then(response => {
-		const raidlog = guild.channels.cache.get(db.get(`${guild.id}.raidlog`))
-		if (response.data && response.data.audit_log_entries[0].user_id) {
-			let perm = ""
-			if (client.user.id === response.data.audit_log_entries[0].user_id) return undefined
-			if (db.get(`rolesdelwl_${guild.id}`) === null) perm = client.user.id === response.data.audit_log_entries[0].user_id || guild.owner.id === response.data.audit_log_entries[0].user_id || client.config.owner.includes(response.data.audit_log_entries[0].user_id) || db.get(`ownermd_${client.user.id}_${response.data.audit_log_entries[0].user_id}`) === true || db.get(`wlmd_${guild.id}_${response.data.audit_log_entries[0].user_id}`) === true
-			if (db.get(`rolesdelwl_${guild.id}`) === true) perm = client.user.id === response.data.audit_log_entries[0].user_id || guild.owner.id === response.data.audit_log_entries[0].user_id || client.config.owner.includes(response.data.audit_log_entries[0].user_id) || db.get(`ownermd_${client.user.id}_${response.data.audit_log_entries[0].user_id}`) === true
-			if (db.get(`rolesdel_${guild.id}`) === true && !perm) {
-				if (db.get(`rolesdelsanction_${guild.id}`) === "ban") {
+        if (!entry || !entry.executor) {
+            console.log("Aucune entrée d'audit valide trouvée pour la suppression du rôle.");
+            return;
+        }
 
+        const executor = entry.executor;
 
-					axios({
-						url: `https://discord.com/api/v9/guilds/${guild.id}/bans/${response.data.audit_log_entries[0].user_id}`,
-						method: 'PUT',
-						headers: {
-							Authorization: `bot ${client.config.token}`
-						},
-						data: {
-							delete_message_days: '1',
-							reason: 'AntiRôle Delete'
-						}
-					}).then(() => {
-						role.guild.roles.create({
-							data: {
-								name: role.name,
-								color: role.hexColor,
-								permissions: role.permissions,
-								hoist: role.hoist,
-								mentionable: role.mentionable,
-								position: role.rawPosition,
-								highest: role.highest,
-								reason: `AntiRoleDelete`
-							}
+        // Ignorer l'action si l'exécuteur est le bot lui-même
+        if (executor.id === client.user.id) return;
 
-						})
-						if (raidlog) return raidlog.send(new MessageEmbed().setColor(color).setDescription(`<@${response.data.audit_log_entries[0].user_id}> a supprimé le rôle \`${role.name}\`, il a été **ban** !`))
-					}).catch(() => {
-						role.guild.roles.create({
-							data: {
-								name: role.name,
-								color: role.hexColor,
-								permissions: role.permissions,
-								hoist: role.hoist,
-								mentionable: role.mentionable,
-								position: role.rawPosition,
-								highest: role.highest,
-								reason: `AntiRoleDelete`
-							}
+        // Vérification des permissions de l'exécuteur
+        let isPermitted = false;
+        if (db.get(`rolesdelwl_${guild.id}`) === null) {
+            isPermitted = client.user.id === executor.id ||
+                guild.ownerId === executor.id ||
+                client.config.owner.includes(executor.id) ||
+                db.get(`ownermd_${client.user.id}_${executor.id}`) === true ||
+                db.get(`wlmd_${guild.id}_${executor.id}`) === true;
+        } else if (db.get(`rolesdelwl_${guild.id}`) === true) {
+            isPermitted = client.user.id === executor.id ||
+                guild.ownerId === executor.id ||
+                client.config.owner.includes(executor.id) ||
+                db.get(`ownermd_${client.user.id}_${executor.id}`) === true;
+        }
 
-						})
-						if (raidlog) return raidlog.send(new MessageEmbed().setColor(color).setDescription(`<@${response.data.audit_log_entries[0].user_id}> a supprimé le rôle \`${role.name}\`, mais il n'a pas pu être **ban** !`))
+        if (db.get(`rolesdel_${guild.id}`) && !isPermitted) {
+            const sanction = db.get(`rolesdelsanction_${guild.id}`);
+            const member = guild.members.cache.get(executor.id);
 
-					})
-				} else if (db.get(`rolesdelsanction_${guild.id}`) === "kick") {
-					guild.members.cache.get(response.data.audit_log_entries[0].user_id).kick().then(() => {
-						role.guild.roles.create({
-							data: {
-								name: role.name,
-								color: role.hexColor,
-								permissions: role.permissions,
-								hoist: role.hoist,
-								mentionable: role.mentionable,
-								position: role.rawPosition,
-								highest: role.highest,
-								reason: `AntiRoleDelete`
-							}
+            if (!member) {
+                if (raidlog) {
+                    raidlog.send(new MessageEmbed()
+                        .setColor(color)
+                        .setDescription(`Impossible de trouver l'exécuteur <@${executor.id}> pour appliquer la sanction.`));
+                }
+                return;
+            }
 
-						})
-						if (raidlog) return raidlog.send(new MessageEmbed().setColor(color).setDescription(`<@${response.data.audit_log_entries[0].user_id}> a supprimé le rôle \`${role.name}\`, il a été **kick** !`))
-					}).catch(() => {
-						role.guild.roles.create({
-							data: {
-								name: role.name,
-								color: role.hexColor,
-								permissions: role.permissions,
-								hoist: role.hoist,
-								mentionable: role.mentionable,
-								position: role.rawPosition,
-								highest: role.highest,
-								reason: `AntiRoleDelete`
-							}
+            // Restaurer le rôle supprimé avec toutes ses propriétés
+            try {
+                const recreatedRole = await guild.roles.create({
+                    name: role.name, // Nom d'origine
+                    color: role.color, // Couleur exacte du rôle supprimé
+                    permissions: role.permissions.bitfield, // Permissions d'origine
+                    hoist: role.hoist,
+                    mentionable: role.mentionable,
+                    reason: `AntiRoleDelete - Restauration du rôle supprimé`
+                });
 
-						})
-						if (raidlog) return raidlog.send(new MessageEmbed().setColor(color).setDescription(`<@${response.data.audit_log_entries[0].user_id}> a supprimé le rôle \`${role.name}\`, mais il n'a pas pu être **kick** !`))
-					})
-				} else if (db.get(`rolesdelsanction_${guild.id}`) === "derank") {
+                // Déplacer le rôle recréé à sa position originale
+                await recreatedRole.setPosition(role.position);
 
-					guild.members.cache.get(response.data.audit_log_entries[0].user_id).roles.set([]).then(() => {
+                if (raidlog) {
+                    raidlog.send(new MessageEmbed()
+                        .setColor(color)
+                        .setDescription(`Le rôle \`${role.name}\` a été restauré avec succès après sa suppression.`));
+                }
+            } catch (err) {
+                console.error(`Erreur lors de la restauration du rôle: ${err.message}`);
+                if (raidlog) {
+                    raidlog.send(new MessageEmbed()
+                        .setColor(color)
+                        .setDescription(`Le rôle \`${role.name}\` n'a pas pu être restauré.`));
+                }
+            }
 
-						role.guild.roles.create({
-							data: {
-								name: role.name,
-								color: role.hexColor,
-								permissions: role.permissions,
-								hoist: role.hoist,
-								mentionable: role.mentionable,
-								position: role.rawPosition,
-								highest: role.highest,
-								reason: `AntiRoleDelete`
-							}
-
-						})
-						if (raidlog) return raidlog.send(new MessageEmbed().setColor(color).setDescription(`<@${response.data.audit_log_entries[0].user_id}> a supprimé le rôle \`${role.name}\`, il a été **derank** !`))
-					}).catch(() => {
-						role.guild.roles.create({
-							data: {
-								name: role.name,
-								color: role.hexColor,
-								permissions: role.permissions,
-								hoist: role.hoist,
-								mentionable: role.mentionable,
-								position: role.rawPosition,
-								highest: role.highest,
-								reason: `AntiRoleDelete`
-							}
-
-						})
-						if (raidlog) return raidlog.send(new MessageEmbed().setColor(color).setDescription(`<@${response.data.audit_log_entries[0].user_id}> a supprimé le rôle \`${role.name}\`, mais il n'a pas pu être **derank** !`))
-					})
-				}
-
-
-			}
-
-		}
-
-	});
-
-
-}
+            // Appliquer la sanction
+            if (sanction === "ban") {
+                try {
+                    await member.ban({ days: 1, reason: "AntiRoleDelete - Suppression non autorisée" });
+                    if (raidlog) {
+                        raidlog.send(new MessageEmbed()
+                            .setColor(color)
+                            .setDescription(`<@${executor.id}> a supprimé le rôle \`${role.name}\`, il a été **banni** !`));
+                    }
+                } catch (err) {
+                    console.error(`Erreur lors du bannissement de ${executor.id}: ${err.message}`);
+                    if (raidlog) {
+                        raidlog.send(new MessageEmbed()
+                            .setColor(color)
+                            .setDescription(`<@${executor.id}> a supprimé le rôle \`${role.name}\`, mais il n'a pas pu être **banni**.`));
+                    }
+                }
+            } else if (sanction === "kick") {
+                try {
+                    await member.kick("AntiRoleDelete - Suppression non autorisée");
+                    if (raidlog) {
+                        raidlog.send(new MessageEmbed()
+                            .setColor(color)
+                            .setDescription(`<@${executor.id}> a supprimé le rôle \`${role.name}\`, il a été **expulsé** !`));
+                    }
+                } catch (err) {
+                    console.error(`Erreur lors de l'expulsion de ${executor.id}: ${err.message}`);
+                    if (raidlog) {
+                        raidlog.send(new MessageEmbed()
+                            .setColor(color)
+                            .setDescription(`<@${executor.id}> a supprimé le rôle \`${role.name}\`, mais il n'a pas pu être **expulsé**.`));
+                    }
+                }
+            } else if (sanction === "derank") {
+                try {
+                    await member.roles.set([]);
+                    if (raidlog) {
+                        raidlog.send(new MessageEmbed()
+                            .setColor(color)
+                            .setDescription(`<@${executor.id}> a supprimé le rôle \`${role.name}\`, il a été **déranké** !`));
+                    }
+                } catch (err) {
+                    console.error(`Erreur lors du dérankage de ${executor.id}: ${err.message}`);
+                    if (raidlog) {
+                        raidlog.send(new MessageEmbed()
+                            .setColor(color)
+                            .setDescription(`<@${executor.id}> a supprimé le rôle \`${role.name}\`, mais il n'a pas pu être **déranké**.`));
+                    }
+                }
+            }
+        }
+    } catch (error) {
+        console.error("Erreur lors du traitement des logs d'audit ou des actions :", error.message);
+    }
+};
