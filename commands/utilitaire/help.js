@@ -111,6 +111,7 @@ module.exports = {
 - \`${client.config.prefix}counter\`
 - \`${client.config.prefix}prefix <prefix>\`
 - \`${client.config.prefix}rolemenu\`
+- \`${client.config.prefix}rolemembers <@role>\`
 - \`${client.config.prefix}say <message>\`
 - \`${client.config.prefix}soutien\`
 - \`${client.config.prefix}tempvoc\`
@@ -202,6 +203,7 @@ module.exports = {
 			if (5 <= perm) gestion.addField(`\`${prefix}antiraid\``, "Permet de gérer les modules d'antiraid sur le serveur")
 			if (4 <= perm) gestion.addField(`\`${prefix}counter\``, "Permet de gérer les compteurs personnalisés sur le serveur")
 			if (4 <= perm) gestion.addField(`\`${prefix}embed\``, "Permet de crée un embed personalisé")
+			if (4 <= perm) gestion.addField(`\`${prefix}rolemembers\``, "Permet de voir les membres ayant le rôle mentioné")
 			if (4 <= perm) gestion.addField(`\`${prefix}emoji <add/remove> <emoji>\``, "Permet d'ajouté ou d'enlevé un emoji du serveur")
 			if (4 <= perm) gestion.addField(`\`${prefix}giveaway\``, "Permet de crée un giveaway")
 			if (4 <= perm) gestion.addField(`\`${prefix}giveaway reroll\``, "Permet de re choisir le gagnant d'un giveaway")
