@@ -1,192 +1,152 @@
-const Discord = require('discord.js')
-const db = require('quick.db')
+const Discord = require('discord.js');
+const db = require('quick.db');
 const {
-	MessageActionRow,
-	MessageButton,
-	MessageMenuOption,
-	MessageMenu
+    MessageActionRow,
+    MessageButton
 } = require('discord-buttons');
 
 module.exports = {
-	name: 'owner',
-	aliases: [],
-	run: async (client, message, args, prefix, color) => {
+    name: 'owner',
+    aliases: [],
+    run: async (client, message, args, prefix, color) => {
 
-		if (client.config.owner.includes(message.author.id)) {
+        // Vérifie si l'utilisateur est un owner configuré
+        if (client.config.owner.includes(message.author.id)) {
 
-//##############################################################################################################################################################
+            // ====================== Ajouter un owner =======================
+            if (args[0] === "add") {
+                let member = client.users.cache.get(message.author.id);
+                
+                if (args[1]) {
+                    member = client.users.cache.get(args[1]);
+                } else {
+                    return message.channel.send(`Aucun membre trouvé pour \`${args[1] || " "}\``);
+                }
 
-			if (args[0] === "add") {
-				let member = client.users.cache.get(message.author.id);
-				if (args[1]) {
-					member = client.users.cache.get(args[1]);
-				} else {
-					return message.channel.send(`Aucun membre trouvé pour \`${args[1]|| " "}\``)
+                if (message.mentions.members.first()) {
+                    member = client.users.cache.get(message.mentions.members.first().id);
+                }
 
-				}
-				if (message.mentions.members.first()) {
-					member = client.users.cache.get(message.mentions.members.first().id);
-				}
-				if (!member) return message.channel.send(`Aucun membre trouvé pour \`${args[1]|| " "}\``)
-				if (db.get(`ownermd_${client.user.id}_${member.id}`) === true) {
-					return message.channel.send(`**${member.tag}** est déjà présent dans la liste owner`)
-				}
+                if (!member) {
+                    return message.channel.send(`Aucun membre trouvé pour \`${args[1] || " "}\``);
+                }
 
-				db.set(`ownermd_${client.user.id}_${member.id}`, true)
+                if (db.get(`ownermd_${client.user.id}_${member.id}`)) {
+                    return message.channel.send(`**${member.tag}** est déjà présent dans la liste owner.`);
+                }
 
-				message.channel.send(`**${member.tag}** est maintenant dans la liste owner`)
+                db.set(`ownermd_${client.user.id}_${member.id}`, true);
+                return message.channel.send(`**${member.tag}** est maintenant dans la liste owner.`);
 
-//##############################################################################################################################################################
+            // ====================== Supprimer tous les owners =======================
+            } else if (args[0] === "clear") {
+                let owners = db.all().filter(data => data.ID.startsWith(`ownermd_${client.user.id}`));
 
-			} else if (args[0] === "clear") {
-				let tt = await db.all().filter(data => data.ID.startsWith(`ownermd_${client.user.id}`));
-				message.channel.send(`**${tt.length === undefined||null ? 0:tt.length}** ${tt.length > 1 ? "personnes ont été supprimées ":"personne a été supprimée"} des owners`)
+                message.channel.send(`**${owners.length || 0}** ${owners.length > 1 ? "personnes ont été supprimées" : "personne a été supprimée"} des owners.`);
 
+                for (let owner of owners) {
+                    db.delete(owner.ID);
+                }
 
-				let delowner = 0;
-				for (let i = 0; i < tt.length; i++) {
-					db.delete(tt[i].ID);
-					delowner++;
-				}
+            // ====================== Supprimer un owner spécifique =======================
+            } else if (args[0] === "remove") {
+                let member = client.users.cache.get(message.author.id);
 
-//##############################################################################################################################################################
+                if (args[1]) {
+                    member = client.users.cache.get(args[1]);
+                }
 
-			} else if (args[0] === "remove") {
+                if (message.mentions.members.first()) {
+                    member = client.users.cache.get(message.mentions.members.first().id);
+                }
 
-				if (args[1]) {
-					let member = client.users.cache.get(message.author.id);
-					if (args[1]) {
-						member = client.users.cache.get(args[1]);
-					} else {
-						return message.channel.send(`Aucun membre trouvé pour \`${args[1]|| " "}\``)
+                if (!member) {
+                    return message.channel.send(`Aucun membre trouvé pour \`${args[1] || " "}\``);
+                }
 
-					}
-					if (message.mentions.members.first()) {
-						member = client.users.cache.get(message.mentions.members.first().id);
-					}
-					if (!member) return message.channel.send(`Aucun membre trouvé pour \`${args[1]|| " "}\``)
-					if (db.get(`ownermd_${client.user.id}_${member.id}`) === null) return message.channel.send(`**${member.tag}** n'est pas présent dans la liste owner`)
-					db.delete(`ownermd_${client.user.id}_${member.id}`)
-					message.channel.send(`**${member.tag}** n'est plus dans la liste owner`)
-				}
+                if (!db.get(`ownermd_${client.user.id}_${member.id}`)) {
+                    return message.channel.send(`**${member.tag}** n'est pas présent dans la liste owner.`);
+                }
 
-//##############################################################################################################################################################
+                db.delete(`ownermd_${client.user.id}_${member.id}`);
+                return message.channel.send(`**${member.tag}** n'est plus dans la liste owner.`);
 
-			} else if (args[0] === "list") {
+            // ====================== Lister tous les owners =======================
+            } else if (args[0] === "list") {
+                let owners = db.all()
+                    .filter(data => data.ID.startsWith(`ownermd_${client.user.id}`))
+                    .sort((a, b) => b.data - a.data);
 
+                let page = 1;
+                let itemsPerPage = 5;
+                let totalPages = Math.ceil(owners.length / itemsPerPage) || 1;
 
-				let money = db.all().filter(data => data.ID.startsWith(`ownermd_${client.user.id}`)).sort((a, b) => b.data - a.data)
+                const embed = new Discord.MessageEmbed()
+                    .setTitle('Liste des Owners')
+                    .setDescription(
+                        owners
+                            .filter(x => client.users.cache.get(x.ID.split('_')[2]))
+                            .map((entry, index) => {
+                                const user = client.users.cache.get(entry.ID.split('_')[2]);
+                                return `${index + 1}) <@${user.id}> (${user.id})`;
+                            })
+                            .slice(0, itemsPerPage)
+                            .join('\n')
+                    )
+                    .setFooter(`${page}/${totalPages} • ${client.config.name}`)
+                    .setColor(color);
 
-				let p0 = 0;
-				let p1 = 5;
-				let page = 1;
+                const messageInstance = await message.channel.send(embed);
 
-				const embed = new Discord.MessageEmbed()
-					.setTitle('Owner')
-					.setDescription(money
-						.filter(x => client.users.cache.get(x.ID.split('_')[2]))
-						.map((m, i) => `${i + 1}) <@${client.users.cache.get(m.ID.split('_')[2]).id}> (${client.users.cache.get(m.ID.split('_')[2]).id})`)
-						.slice(0, 5)
+                if (owners.length > itemsPerPage) {
+                    const buttonPrevious = new MessageButton()
+                        .setLabel("◀")
+                        .setStyle("gray")
+                        .setID('owner_previous');
 
-					)
-					.setFooter(`${page}/${Math.ceil(money.length === 0?1:money.length / 5)} • ${client.config.name}`)
-					.setColor(color)
+                    const buttonNext = new MessageButton()
+                        .setLabel("▶")
+                        .setStyle("gray")
+                        .setID('owner_next');
 
+                    const actionRow = new MessageActionRow()
+                        .addComponent(buttonPrevious)
+                        .addComponent(buttonNext);
 
-				message.channel.send(embed).then(async tdata => {
-					if (money.length > 5) {
-						const B1 = new MessageButton()
-							.setLabel("◀")
-							.setStyle("gray")
-							.setID('owner1');
+                    messageInstance.edit({ embed, components: [actionRow] });
 
-						const B2 = new MessageButton()
-							.setLabel("▶")
-							.setStyle("gray")
-							.setID('owner2');
+                    let currentPage = 0;
 
-						const bts = new MessageActionRow()
-							.addComponent(B1)
-							.addComponent(B2)
-						tdata.edit("", {
-							embed: embed,
-							components: [bts]
-						})
-						setTimeout(() => {
-							tdata.edit("", {
-								components: [],
-								embed: new Discord.MessageEmbed()
-									.setTitle('Owner')
-									.setDescription(money
-										.filter(x => client.users.cache.get(x.ID.split('_')[2]))
-										.map((m, i) => `${i + 1}) <@${client.users.cache.get(m.ID.split('_')[2]).id}> (${client.users.cache.get(m.ID.split('_')[2]).id})`)
-										.slice(0, 5)
+                    const updateEmbed = (page) => {
+                        embed.setDescription(
+                            owners
+                                .filter(x => client.users.cache.get(x.ID.split('_')[2]))
+                                .map((entry, index) => {
+                                    const user = client.users.cache.get(entry.ID.split('_')[2]);
+                                    return `${index + 1}) <@${user.id}> (${user.id})`;
+                                })
+                                .slice(page * itemsPerPage, (page + 1) * itemsPerPage)
+                                .join('\n')
+                        )
+                        .setFooter(`${page + 1}/${totalPages} • ${client.config.name}`);
 
-									)
-									.setFooter(`1/${Math.ceil(money.length === 0?1:money.length / 5)} • ${client.config.name}`)
-									.setColor(color)
+                        messageInstance.edit({ embed });
+                    };
 
+                    client.on("clickButton", async (button) => {
+                        if (button.clicker.user.id !== message.author.id) return;
+                        button.reply.defer(true);
 
-							})
-							// message.channel.send(embeds)
-						}, 60000 * 5)
-						client.on("clickButton", (button) => {
-							if (button.clicker.user.id !== message.author.id) return;
-							if (button.id === "owner1") {
-								button.reply.defer(true)
-
-								p0 = p0 - 5;
-								p1 = p1 - 5;
-								page = page - 1
-
-								if (p0 < 0) {
-									return
-								}
-								if (p0 === undefined || p1 === undefined) {
-									return
-								}
-
-
-								embed.setDescription(money
-										.filter(x => client.users.cache.get(x.ID.split('_')[2]))
-										.map((m, i) => `${i + 1}) <@${client.users.cache.get(m.ID.split('_')[2]).id}> (${client.users.cache.get(m.ID.split('_')[2]).id})`)
-										.slice(p0, p1)
-
-									)
-									.setFooter(`${page}/${Math.ceil(money.length === 0?1:money.length / 5)} • ${client.config.name}`)
-								tdata.edit(embed);
-
-							}
-							if (button.id === "owner2") {
-								button.reply.defer(true)
-
-								p0 = p0 + 5;
-								p1 = p1 + 5;
-
-								page++;
-
-								if (p1 > money.length + 5) {
-									return
-								}
-								if (p0 === undefined || p1 === undefined) {
-									return
-								}
-
-
-								embed.setDescription(money
-										.filter(x => client.users.cache.get(x.ID.split('_')[2]))
-										.map((m, i) => `${i + 1}) <@${client.users.cache.get(m.ID.split('_')[2]).id}> (${client.users.cache.get(m.ID.split('_')[2]).id})`)
-										.slice(p0, p1)
-
-									)
-									.setFooter(`${page}/${Math.ceil(money.length === 0?1:money.length / 5)} • ${client.config.name}`)
-								tdata.edit(embed);
-
-							}
-						})
-					}
-				})
-			}
-		}
-	}
-}
+                        if (button.id === "owner_previous" && currentPage > 0) {
+                            currentPage--;
+                            updateEmbed(currentPage);
+                        } else if (button.id === "owner_next" && currentPage < totalPages - 1) {
+                            currentPage++;
+                            updateEmbed(currentPage);
+                        }
+                    });
+                }
+            }
+        }
+    }
+};
