@@ -71,6 +71,7 @@ module.exports = {
 - \`${client.config.prefix}alladmin\`
 - \`${client.config.prefix}allbot\`
 - \`${client.config.prefix}allbotadmin\`
+- \`${client.config.prefix}booster\`
 - \`${client.config.prefix}ban <membre> [raison]\`
 - \`${client.config.prefix}unban <membreID>\`
 - \`${client.config.prefix}banlist\`
@@ -148,6 +149,7 @@ module.exports = {
 			util.setDescription("*Les paramètres entre **`<...>`** sont obligatoire, alors que les paramètres entre **`[...]`** eux sont facultatifs*")
 				if (2 <= perm) util.addField(`\`${prefix}alladmin\``, "Permet de voir tout les administrateurs présents sur le serveur")
 				if (2 <= perm) util.addField(`\`${prefix}allbot\``, "Permet de voir tout les bots présents sur le serveur")
+            	if (2 <= perm) util.addField(`\`${prefix}bosster\``, "Permet de voir tout les membre ayant boster le serveur")
 				if (2 <= perm) util.addField(`\`${prefix}allbotadmin\``, "Permet de voir tout les bots administrateurs présents sur le serveur")
 			util.addField(`\`${prefix}banner [membre]\``, "Permet de voir la bannière d'un utilisateur")
 			util.addField(`\`${prefix}channelinfo [salon]\``, "Permet de d'avoir des informations sur un salon")
