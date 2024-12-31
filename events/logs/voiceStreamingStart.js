@@ -14,13 +14,7 @@ module.exports = (client, member, voiceChannel) => {
         const embed = new Discord.MessageEmbed()
             .setColor(color)
             .setAuthor(`${member.user.username}`, member.user.displayAvatarURL({ dynamic: true }))
-            .setDescription(`${member} **partage son écran** dans <#${voiceChannel.id}>`)
-            .addField('ID du salon', voiceChannel.id, true)
-            .addField('Nom du salon', voiceChannel.name, true)
-            .addField('Statut', `${member.presence ? member.presence.status : 'Non défini'}`, true)
-            .addField('Heure du partage', new Date().toLocaleString(), true)
-            .setFooter(`${client.config.name ? client.config.name : 'Bot'} | Log de stream`)
-            .setTimestamp();
+            .setDescription(`${member} partage son écran dans ${voiceChannel.name}`)
 
         // Envoi de l'embed dans le canal de logs
         logschannel.send(embed);
