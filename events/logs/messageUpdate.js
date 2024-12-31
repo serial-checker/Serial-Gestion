@@ -14,11 +14,9 @@ module.exports = async (client, oldMessage, newMessage) => {
     if (logschannel) {
         const embed = new Discord.MessageEmbed()
             .setColor(color)
-            .setDescription(`**Message édité dans** <#${oldMessage.channel.id}> par ${oldMessage.author.tag} (${oldMessage.author.id})`)
-            .addField('Avant', oldMessage.content || 'Aucun contenu (message vide)', false)
-            .addField('Après', newMessage.content || 'Aucun contenu (message vide)', false)
-            .addField('ID du message', oldMessage.id, true)
-            .addField('Date d\'édition', newMessage.editedAt ? newMessage.editedAt.toLocaleString() : 'Non édité', true)
+            .setDescription(`**Message édité par** ${oldMessage.author} dans <#${oldMessage.channel.id}>`)
+            .addField('Avant :', oldMessage.content || 'Aucun contenu (message vide)', false)
+            .addField('Après :', newMessage.content || 'Aucun contenu (message vide)', false)
             .setTimestamp(); // Ajoute un timestamp pour l'édition
 
         // Si le message avant ou après modification a des pièces jointes
