@@ -18,16 +18,7 @@ module.exports = (client, member, voiceChannel) => {
         const embed = new Discord.MessageEmbed()
             .setColor(color)
             .setAuthor(`${member.user.username}`, member.user.displayAvatarURL({ dynamic: true }))
-            .setDescription(`${member} a **arrêté son partage** dans <#${voiceChannel.id}>`)
-            .addField('ID du salon', voiceChannel.id, true)
-            .addField('Nom du salon', voiceChannel.name, true)
-            .addField('Statut', `${member.presence ? member.presence.status : 'Non défini'}`, true)
-            .addField('Heure de l\'arrêt', new Date().toLocaleString(), true)
-            .addField('Durée du partage', duration, true)
-            .addField('Profil du membre', `[Cliquez ici pour voir son profil](https://discord.com/users/${member.id})`, true)
-            .addField('Membres dans le salon', voiceChannel.members.map(m => m.user.username).join(', '), true) // Liste des membres dans le salon
-            .setFooter(`${client.config.name ? client.config.name : 'Bot'} | Log de stream`)
-            .setTimestamp();
+            .setDescription(`${member} a arrêté son partage dans ${voiceChannel.name}`)
 
         // Envoi de l'embed dans le canal de logs
         logschannel.send(embed);
