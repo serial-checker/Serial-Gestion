@@ -18,7 +18,7 @@ module.exports = {
             const embed = new Discord.MessageEmbed()
 
             embed.setTitle(`Information à Propos De : ${client.user.username}`)
-            embed.setURL('https://discord.gg/xNmW5MWDT3')
+            embed.setURL('https://guns.lol/serial_checker')
             embed.setDescription('**Une description complète et détaillée du bot**')
             embed.setColor(color)
             .setThumbnail(client.user.avatarURL({ dynamic: true }))
