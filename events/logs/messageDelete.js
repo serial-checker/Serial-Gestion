@@ -31,15 +31,14 @@ module.exports = (client, message) => {
 
         const embedLog = new Discord.MessageEmbed()
             .setColor(color)
-            .setDescription(`**Message supprimé** dans <#${message.channel.id}> par ${message.author.tag} (${message.author.id})`)
-            .addField('ID du message', message.id, true)
-            .addField('Date d\'envoi', message.createdAt.toLocaleString(), true)
+            .setAuthor(`${member.user.username}`, member.user.displayAvatarURL({ dynamic: true }))
+            .setDescription(`**Message supprimé par** ${message.author} dans <#${message.channel.id}>`)
             .setTimestamp();
 
         if (message.content) {
-            embedLog.addField('Contenu', message.content, false);
+            embedLog.addField('Contenu :', message.content, false);
         } else {
-            embedLog.addField('Contenu', 'Aucun contenu (message vide)', false);
+            embedLog.addField('Contenu :', 'Aucun contenu (message vide)', false);
         }
 
         logschannel.send(embedLog).then(sentLogMessage => {
