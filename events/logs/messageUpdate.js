@@ -14,6 +14,7 @@ module.exports = async (client, oldMessage, newMessage) => {
     if (logschannel) {
         const embed = new Discord.MessageEmbed()
             .setColor(color)
+            .setAuthor(`${member.user.username}`, member.user.displayAvatarURL({ dynamic: true }))
             .setDescription(`**Message édité par** ${oldMessage.author} dans <#${oldMessage.channel.id}>`)
             .addField('Avant :', oldMessage.content || 'Aucun contenu (message vide)', false)
             .addField('Après :', newMessage.content || 'Aucun contenu (message vide)', false)
