@@ -71,7 +71,7 @@ module.exports = {
                         if (logsmod) {
                             const embed = new Discord.MessageEmbed()
                                 .setColor(color)
-                                .setDescription(`${message.author} a clear 100 messages dans ${message.channel}.`)
+                                .setDescription(`${message.author} a clear tout les messages dans ${message.channel}.`)
                             logsmod.send(embed);
                         }
                     }, 1000);
