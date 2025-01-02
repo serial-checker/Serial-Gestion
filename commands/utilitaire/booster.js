@@ -10,6 +10,7 @@ module.exports = {
         // Vérification des permissions
         let perm = false;
         message.member.roles.cache.forEach(role => {
+            if (db.get(`modsp_${message.guild.id}_${role.id}`)) perm = true;
             if (db.get(`ownerp_${message.guild.id}_${role.id}`)) perm = true;
             if (db.get(`admin_${message.guild.id}_${role.id}`)) perm = true;
         });
