@@ -32,7 +32,7 @@ module.exports = (client, message) => {
         const embedLog = new Discord.MessageEmbed()
             .setColor(color)
             .setAuthor(`${message.author.username}`, message.author.displayAvatarURL({ dynamic: true }))
-            .setDescription(`**Message supprimé par** ${message.author} dans <#${message.channel.id}>`)
+            .setDescription(`**Message supprimé dansr** <#${message.channel.id}>`)
             .setTimestamp();
 
         if (message.content) {
