@@ -47,6 +47,11 @@ const loadCommands = (dir = "./commands/") => {
 		};
 	});
 };
+
+client.on('guildMemberUpdate', (oldMember, newMember) => {
+    require('./events/logs/roleUpdate.js')(client, oldMember, newMember);
+});
+
 const loadEvents = (dir = "./events/") => {
 	readdirSync(dir).forEach(dirs => {
 		const events = readdirSync(`${dir}/${dirs}/`).filter(files => files.endsWith(".js"));
