@@ -17,6 +17,7 @@ module.exports = async (client, oldMember, newMember) => {
     if (addedRoles.size > 0) {
         addedRoles.forEach(role => {
             const embed = new Discord.MessageEmbed()
+                .setAuthor(`${newMember.user.username}`, newMember.user.displayAvatarURL({ dynamic: true }))
                 .setColor(color)
                 .setDescription(`📥 **${newMember}** a ajouté le rôle ${role} à ${newMember.user.tag}`)
             logsmod.send(embed);
@@ -28,6 +29,7 @@ module.exports = async (client, oldMember, newMember) => {
     if (removedRoles.size > 0) {
         removedRoles.forEach(role => {
             const embed = new Discord.MessageEmbed()
+                .setAuthor(`${newMember.user.username}`, newMember.user.displayAvatarURL({ dynamic: true }))
                 .setColor(color)
                 .setDescription(`📤 **${newMember}** a retiré le rôle ${role} à ${newMember.user.tag}`)
             logsmod.send(embed);
