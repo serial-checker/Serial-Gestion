@@ -164,6 +164,7 @@ module.exports = {
 				if (2 <= perm) util.addField(`\`${prefix}allbot\``, "Permet de voir tout les bots présents sur le serveur")
 				if (2 <= perm) util.addField(`\`${prefix}allbotadmin\``, "Permet de voir tout les bots administrateurs présents sur le serveur")
                 if (2 <= perm) util.addField(`\`${prefix}roleinfo <rôle>\``, "Permet de d'avoir des informations sur un rôle")
+            	if (2 <= perm) util.addField(`\`${prefix}slowmode <#salon/id> <durée>\``, "Change la durée du mode lent sur un salon max 6h")
 			util.addField(`\`${prefix}banner [@membre/id]\``, "Permet de voir la bannière d'un utilisateur")
 			util.addField(`\`${prefix}channelinfo [salon]\``, "Permet de d'avoir des informations sur un salon")
 			util.addField(`\`${prefix}help\``, "Permet de voir la liste des commandes du bot")
