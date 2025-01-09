@@ -21,7 +21,7 @@ module.exports = (client, message) => {
 			if (db.get(`admin_${message.guild.id}_${role.id}`)) perm = true
 		})
 		if (client.config.owner.includes(message.author.id) || db.get(`ownermd_${client.user.id}_${message.author.id}`) === true || perm || db.get(`channelpublic_${message.guild.id}_${message.channel.id}`) === true) {
-			return message.channel.send(`Mon prefix : \`${prefix}\``)
+			return message.channel.send(`Mon prefix sur ce serveur et : \`${prefix}\``)
 		}
 	}
 
