@@ -17,7 +17,7 @@ module.exports = {
         // Création de l'embed avec la couleur de la DB
         const embed = new Discord.MessageEmbed()
             .setTitle("Vos bots")
-            .setDescription(`[${client.user.username}](${inviteLink}) : **70 jours restants**`)
+            .setDescription(`[${client.user.username}](${inviteLink})`)
             .setColor(color) 
 
         // Envoi de l'embed
