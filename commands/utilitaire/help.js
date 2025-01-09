@@ -36,6 +36,7 @@ module.exports = {
 - \`${client.config.prefix}top [rank]\`
 - \`${client.config.prefix}help\`
 - \`${client.config.prefix}channelinfo [sallon]\`
+- \`${client.config.prefix}prevname [membre]\`
 `)
 
 			let perm = ""
@@ -131,6 +132,7 @@ module.exports = {
 - \`${client.config.prefix}tempvoc\`
 - \`${client.config.prefix}welcome\`
 - \`${client.config.prefix}synch <catégorie/id>\`
+- \`${client.config.prefix}mybot\`
 `)
 					.setFooter(`Prefix : ${prefix} • ${client.config.name}`)
 
@@ -167,6 +169,7 @@ module.exports = {
                 if (2 <= perm) util.addField(`\`${prefix}roleinfo <rôle>\``, "Permet de d'avoir des informations sur un rôle")
             	if (2 <= perm) util.addField(`\`${prefix}slowmode <#salon/id> <durée>\``, "Change la durée du mode lent sur un salon max 6h")
 			util.addField(`\`${prefix}banner [@membre/id]\``, "Permet de voir la bannière d'un utilisateur")
+            util.addField(`\`${prefix}prevname [@membre/id]\``, "Permet de voir tout les anciens pseudo d'un utilisateur")
 			util.addField(`\`${prefix}channelinfo [salon]\``, "Permet de d'avoir des informations sur un salon")
 			util.addField(`\`${prefix}help\``, "Permet de voir la liste des commandes du bot")
 			util.addField(`\`${prefix}invite [@membre/id]\``, "Permet de voir le nombre d'invtations que possède un utilisateur")
@@ -250,6 +253,7 @@ module.exports = {
 			if (5 <= perm) bot.addField(`\`${prefix}server <invite/leave/list> <leave/invite: ID>\``, "Permet de gérer les serveurs où ce trouve le bot")
 			if (5 <= perm) bot.addField(`\`${prefix}botconfig\``, "Permet de gérer la configuration du bot")
 			if (5 <= perm) bot.addField(`\`${prefix}botinfo\``, "Permet de voir les informations détaillé du bot")
+            if (5 <= perm) bot.addField(`\`${prefix}mybot\``, "Permet de voir tout les bots du client")
             if (5 <= perm) bot.addField(`\`${prefix}backup <emoji> <clear/create/list/load/remove>> <2/3/4: code>\``, "Permet de gérer les backup sur le bot")
 
 			if (perm === "" && db.get(`channelpublic_${message.guild.id}_${message.channel.id}`) === true) return message.channel.send(util)
