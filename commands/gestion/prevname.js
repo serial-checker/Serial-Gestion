@@ -17,7 +17,7 @@ module.exports = {
             db.get(`ownermd_${client.user.id}_${message.author.id}`) !== true &&
             !perm &&
             !db.get(`channelpublic_${message.guild.id}_${message.channel.id}`)) {
-            return message.channel.send("Vous n'avez pas la permission d'utiliser cette commande.");
+            return;
         }
 
         // Gestion de la commande clear
