@@ -48,7 +48,7 @@ const loadCommands = (dir = "./commands/") => {
 	});
 };
 
-client.on('guildMemberUpdate', (oldMember, newMember) => {
+client.on('guildMemberUpdate', async (oldMember, newMember) => {
     require('./events/logs/roleUpdate.js')(client, oldMember, newMember);
 });
 
