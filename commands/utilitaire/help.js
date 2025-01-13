@@ -78,6 +78,7 @@ module.exports = {
 - \`${client.config.prefix}allbot\`
 - \`${client.config.prefix}allbotadmin\`
 - \`${client.config.prefix}roleinfo <rôle>\`
+- \`${client.config.prefix}bringall\`
 - \`${client.config.prefix}slowmode <salon> <durée>\`
 - \`${client.config.prefix}unban <membre>\`
 - \`${client.config.prefix}kick <membre> [raison]\`
