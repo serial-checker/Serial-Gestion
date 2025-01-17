@@ -48,9 +48,20 @@ const loadCommands = (dir = "./commands/") => {
 	});
 };
 
+const voiceMuteLogs = require("./events/logs/voiceMuteLogs.js");
+
+client.on("voiceStateUpdate", (oldState, newState) => {
+    voiceMuteLogs(client, oldState, newState);
+});
+
 client.on('guildMemberUpdate', async (oldMember, newMember) => {
     require('./events/logs/roleUpdate.js')(client, oldMember, newMember);
 });
+
+client.on('voiceStateUpdate', (oldState, newState) => {
+    require('./events/logs/VoiceChannelSwitch')(client, oldState, newState);
+});
+
 
 const fs = require('fs');
 const path = require('path');
