@@ -25,6 +25,8 @@ module.exports = {
 
 **__Public__**
 - \`${client.config.prefix}banner [membre]\`
+- \`${client.config.prefix}vanity\`
+- \`${client.config.prefix}changelogs\`
 - \`${client.config.prefix}invite [membre]\`
 - \`${client.config.prefix}support\`
 - \`${client.config.prefix}pic [membre]\`
@@ -171,6 +173,8 @@ module.exports = {
                 if (2 <= perm) util.addField(`\`${prefix}roleinfo <rôle>\``, "Permet de d'avoir des informations sur un rôle")
             	if (2 <= perm) util.addField(`\`${prefix}slowmode <salon> <durée>\``, "Change la durée du mode lent sur un salon max 6h")
 			util.addField(`\`${prefix}banner [membre]\``, "Permet de voir la bannière d'un utilisateur")
+			util.addField(`\`${prefix}vanity\``, "Permet d'obtenir le lien personalisé du serveur si le serveur en posséde un")
+			util.addField(`\`${prefix}changelogs\``, "Permet de voir les derniers changement du bot")
 			util.addField(`\`${prefix}calc\``, "Permet d'éffectuer un calcul avec le bot")
             util.addField(`\`${prefix}prevname [membre]\``, "Permet de voir tout les anciens pseudo d'un utilisateur")
 			util.addField(`\`${prefix}rank [membre]\``, "Permet de voir le rank d'un membre")
