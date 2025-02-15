@@ -14,7 +14,7 @@ module.exports = {
         });
 
         if (!(client.config.owner.includes(message.author.id) || db.get(`ownermd_${client.user.id}_${message.author.id}`) === true || perm || db.get(`channelpublic_${message.guild.id}_${message.channel.id}`) === true)) {
-            return message.channel.send("❌ Vous n'avez pas la permission d'utiliser cette commande.");
+            return message.channel.send;
         }
 
         const embed = new Discord.MessageEmbed()
@@ -31,7 +31,7 @@ module.exports = {
                 "• 🎧 **`bringall`** : *Déplace tous les membres vers un salon vocal.*\n" +
                 "• 🔧 **`delrole`** : *Retire un rôle à un membre.*\n" +
                 "• 🕰️ **`slowmode`** : *Active le mode lent dans un salon (max 6h).*\n" +
-                "• 🤖 **`mybot`** : *Affiche tous les bots du serveur.*\n\u200B")
+                "• 🤖 **`mybot`** : *Affiche tous les bots perso que vous possedez*\n\u200B")
             .addField("🔧 **Rework :**", 
                 "• 🎯 **`top rank`** & **`top invite`** : *Amélioration des classements.*\n" +
                 "• 🎨 **`help`** & **`help all`** : *Rework esthétique.*\n" +
