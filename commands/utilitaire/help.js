@@ -133,6 +133,7 @@ module.exports = {
 - \`${client.config.prefix}public <add/clear/list/remove> <add/remove: salon>\`
 - \`${client.config.prefix}rolemenu\`
 - \`${client.config.prefix}say <message>\`
+- \`${client.config.prefix}fakesay <membre> <message>\`
 - \`${client.config.prefix}soutien\`
 - \`${client.config.prefix}tempvoc\`
 - \`${client.config.prefix}welcome\`
@@ -241,6 +242,7 @@ module.exports = {
 			if (4 <= perm) gestion.addField(`\`${prefix}public <add/clear/list/remove> <add/remove: salon>\``, "Permet de gérer les salons où les commandes public sont autorisés")
 			if (4 <= perm) gestion.addField(`\`${prefix}rolemenu\``, "Affiche un menu interactif pour créer ou modifier un reactionrole/boutonrole ")
 			if (4 <= perm) gestion.addField(`\`${prefix}say <message>\``, "Permet d'envoyer un message avec le bot")
+			if (4 <= perm) gestion.addField(`\`${prefix}fakesay <membre> <message>\``, "La commande envoie un message en se faisant passer pour un membre")
 			if (4 <= perm) gestion.addField(`\`${prefix}soutien\``, "Permet de donner automatiquement un rôle aux membres ayant un message dans leurs statuts ")
 			if (4 <= perm) gestion.addField(`\`${prefix}tempvoc\``, "Affiche un menu interactif pour gérer les vocaux temporaires sur le serveur")
 			if (4 <= perm) gestion.addField(`\`${prefix}welcome\``, "Permet de paramétrer les actions à effectuer quand un membre rejoint le serveur")
