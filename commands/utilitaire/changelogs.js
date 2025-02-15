@@ -30,6 +30,7 @@ module.exports = {
                 "• 📊 **`rank`** : *Affiche le rang d'un membre.*\n" +
                 "• 🎧 **`bringall`** : *Déplace tous les membres vers un salon vocal.*\n" +
                 "• 🔧 **`delrole`** : *Retire un rôle à un membre.*\n" +
+                "• 👄 **`fakesay`** : *La commande envoie un message en se faisant passer pour un membre*\n" +
                 "• 🕰️ **`slowmode`** : *Active le mode lent dans un salon (max 6h).*\n" +
                 "• 🤖 **`mybot`** : *Affiche tous les bots perso que vous possedez*\n\u200B")
             .addField("🔧 **Rework :**", 
