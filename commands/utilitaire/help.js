@@ -250,6 +250,7 @@ module.exports = {
             if (5 <= perm) gestion.addField(`\`${prefix}antiraid\``, "Permet de gérer les modules d'antiraid sur le serveur")
             if (5 <= perm) gestion.addField(`\`${prefix}raidlog <on/off/> [salon]\``, "Permet de définir le salon de raidlog")
             if (5 <= perm) gestion.addField(`\`${prefix}prefix <prefix>\``, "Permet de changer le prefix du bot")
+            if (5 <= perm) gestion.addField(`\`${prefix}cfx\``, "Permet de voir l'état des serveurs CFX.re")
 
 			const bot = new Discord.MessageEmbed()
 			bot.setColor(color)
