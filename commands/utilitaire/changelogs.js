@@ -28,6 +28,7 @@ module.exports = {
                 "• 🚀 **`boosters`** : *Montre les membres ayant boosté le serveur.*\n" +
                 "• 🧮 **`calc`** : *Permet d'effectuer un calcul mathématique.*\n" +
                 "• 📊 **`rank`** : *Affiche le rang d'un membre.*\n" +
+                "• 🐌 **`cfx`** : *Permet de voir l'état des serveurs CFX.re*\n" +
                 "• 🎧 **`bringall`** : *Déplace tous les membres vers un salon vocal.*\n" +
                 "• 🔧 **`delrole`** : *Retire un rôle à un membre.*\n" +
                 "• 👄 **`fakesay`** : *La commande envoie un message en se faisant passer pour un membre*\n" +
