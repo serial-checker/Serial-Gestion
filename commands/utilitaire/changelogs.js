@@ -33,6 +33,7 @@ module.exports = {
                 "• 🔧 **`delrole`** : *Retire un rôle à un membre.*\n" +
                 "• 👄 **`fakesay`** : *La commande envoie un message en se faisant passer pour un membre*\n" +
                 "• 🕰️ **`slowmode`** : *Active le mode lent dans un salon (max 6h).*\n" +
+                "• 🚀 **`dmall`** : *Permet d'envoyer un message en fonction du rôle choisis à tout les membres le possédant*\n" +
                 "• 🤖 **`mybot`** : *Affiche tous les bots perso que vous possedez*\n\u200B")
             .addField("🔧 **Rework :**", 
                 "• 🎯 **`top rank`** & **`top invite`** : *Amélioration des classements.*\n" +
