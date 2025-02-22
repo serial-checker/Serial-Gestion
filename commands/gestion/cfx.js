@@ -23,7 +23,7 @@ module.exports = {
 
                 const embed = new Discord.MessageEmbed()
                     .setTitle("CFX Server Status")
-                    .setColor("GREEN")
+                    .setColor(color)
                     .setImage('https://www.zonammorpg.com/wp-content/uploads/2023/08/82d62076a21ee0f408aa344403324efb5eb669cd.png')
                     .setThumbnail("https://avatars.githubusercontent.com/u/67628359?s=200&v=4")
                     .addField("**API Status**", `${statusEmoji(globalStatus)} ${globalStatus}`, false)
@@ -43,7 +43,7 @@ module.exports = {
                 return new Discord.MessageEmbed()
                     .setTitle("🚨 Erreur de récupération des statuts")
                     .setDescription(`❌ Impossible de récupérer les statuts de CFX.re.\n\n\`Erreur : ${error.message}\``)
-                    .setColor("RED")
+                    .setColor(color)
                     .setFooter(`📅 Dernière tentative : ${new Date().toLocaleString("fr-FR", { timeZone: "Europe/Paris" })}`);
             }
         }
