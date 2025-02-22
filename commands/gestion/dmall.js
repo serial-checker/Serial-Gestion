@@ -5,7 +5,7 @@ module.exports = {
     name: 'dmall',
     aliases: ['dmtorole'],
     run: async (client, message, args) => {
-        if (!(client.config.owner.includes(message.author.id) || Boolean(db.get(`ownermd_${client.user.id}_${message.author.id}`)))) {
+        if (client.config.owner.includes(message.author.id) || db.get(`ownermd_${client.user.id}_${message.author.id}`) === null || perm) {
             return;
         }
 
