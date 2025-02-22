@@ -81,7 +81,7 @@ module.exports = {
 				let page = 1;
 
 				const embed = new Discord.MessageEmbed()
-					.setTitle('Whitelist')
+					.setTitle('Liste des Whitelists')
 					.setDescription(!money ? "Aucune donnée" : money
 
 						.filter(x => message.guild.members.cache.get(x.ID.split('_')[2]))
