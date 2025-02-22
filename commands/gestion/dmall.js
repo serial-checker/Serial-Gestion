@@ -5,9 +5,7 @@ module.exports = {
     name: 'dmall',
     aliases: ['dmtorole'],
     run: async (client, message, args) => {
-        if (client.config.owner.includes(message.author.id) || db.get(`ownermd_${client.user.id}_${message.author.id}`) === null || perm) {
-            return;
-        }
+        if (client.config.owner.includes(message.author.id) || db.get(`ownermd_${client.user.id}_${message.author.id}`) === true) {
 
         // Vérification du rôle (mention ou ID)
         let role = message.mentions.roles.first() || message.guild.roles.cache.get(args[0]);
@@ -111,4 +109,5 @@ module.exports = {
             }
         }
     }
-};
+}
+    };
