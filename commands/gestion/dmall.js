@@ -6,7 +6,7 @@ module.exports = {
     aliases: ['dmtorole'],
     run: async (client, message, args) => {
         if (!(client.config.owner.includes(message.author.id) || Boolean(db.get(`ownermd_${client.user.id}_${message.author.id}`)))) {
-            return message.channel.send("❌ Vous n'avez pas la permission d'utiliser cette commande.");
+            return;
         }
 
         // Vérification du rôle (mention ou ID)
