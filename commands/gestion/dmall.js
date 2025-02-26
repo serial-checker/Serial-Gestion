@@ -1,113 +1,60 @@
-const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const Discord = require('discord.js');
 const db = require('quick.db');
 
 module.exports = {
     name: 'dmall',
-    aliases: ['dmtorole'],
-    run: async (client, message, args) => {
-        if (client.config.owner.includes(message.author.id) || db.get(`ownermd_${client.user.id}_${message.author.id}`) === true) {
+    aliases: ['dmallrole'],
 
-        // Vérification du rôle (mention ou ID)
-        let role = message.mentions.roles.first() || message.guild.roles.cache.get(args[0]);
-        if (!role) return message.channel.send("❌ Rôle introuvable. Mentionnez un rôle ou utilisez un ID valide.");
+    run: async (client, message, args, prefix, color) => {
+        let perm = false;
+        message.member.roles.cache.forEach(role => {
+            if (db.get(`ownerp_${message.guild.id}_${role.id}`)) {
+                perm = true;
+                return;
+            }
+        });
 
-        // Vérification du message à envoyer
-        let content = args.slice(1).join(" ");
-        if (!content) return message.channel.send("❌ Veuillez fournir un message à envoyer.");
+        if (client.config.owner.includes(message.author.id) || db.get(`ownermd_${client.user.id}_${message.author.id}`) === true || perm) {
+            if (!args[0]) return message.channel.send("Veuillez spécifier un message à envoyer.");
 
-        // Vérification du mode "silent"
-        let silent = content.endsWith("--silent");
-        if (silent) content = content.replace("--silent", "").trim();
+            let targetRole = message.mentions.roles.first() || message.guild.roles.cache.get(args[0]);
+            let content = targetRole ? args.slice(1).join(" ") : args.join(" ");
+            let members = targetRole ? targetRole.members : message.guild.members.cache;
 
-        // Chargement de tous les membres pour éviter les erreurs
-        await message.guild.members.fetch();
-        let members = message.guild.members.cache.filter(member => member.roles.cache.has(role.id) && !member.user.bot);
-        if (members.size === 0) return message.channel.send("❌ Aucun membre humain trouvé avec ce rôle.");
+            if (!content) return message.channel.send("Veuillez spécifier un message à envoyer.");
+            if (members.size === 0) return message.channel.send("Aucun membre trouvé pour cet envoi de message.");
 
-        // Si plus de 50 membres, demander confirmation
-        if (members.size > 50) {
-            let row = new ActionRowBuilder().addComponents(
-                new ButtonBuilder().setCustomId('confirm').setLabel('✅ Confirmer').setStyle(ButtonStyle.Success),
-                new ButtonBuilder().setCustomId('cancel').setLabel('❌ Annuler').setStyle(ButtonStyle.Danger)
-            );
+            let success = 0, failed = 0;
 
-            let confirmMsg = await message.channel.send({
-                content: `⚠ **Attention !** Tu es sur le point d'envoyer un DM à **${members.size}** membres. Confirmer ?`,
-                components: [row]
-            });
-
-            const collector = confirmMsg.createMessageComponentCollector({ filter: i => i.user.id === message.author.id, time: 15000 });
-
-            collector.on('collect', async i => {
-                if (i.customId === 'confirm') {
-                    await i.update({ content: "📨 Envoi des messages en cours...", components: [] });
-                    sendDMs();
-                } else {
-                    await i.update({ content: "❌ Envoi annulé.", components: [] });
-                }
-                collector.stop();
-            });
-
-            return;
-        }
-
-        // Envoi des messages
-        sendDMs();
-
-        async function sendDMs() {
-            let sentCount = 0;
-            let failed = [];
-
-            await Promise.all(Array.from(members.values()).map(async member => {
-                try {
-                    await member.send(content);
-                    sentCount++;
-                } catch (err) {
-                    failed.push(member.user.tag);
+            await Promise.all(members.map(async member => {
+                if (!member.user.bot) {
+                    try {
+                        await member.send(content);
+                        success++;
+                    } catch (err) {
+                        failed++;
+                    }
                 }
             }));
 
-            let resultMessage = `✅ Message envoyé à **${sentCount}** membres.\n❌ **${failed.length}** échecs (DM fermés).`;
-            if (!silent) message.channel.send(resultMessage);
+            const embed = new Discord.MessageEmbed()
+                .setColor(color)
+                .setAuthor(message.author.tag, message.author.displayAvatarURL({ dynamic: true }))
+                .setTitle("DM All")
+                .setDescription(`Le message a été envoyé à **${success}** membres.\nÉchecs : **${failed}** membres.`);
+            message.channel.send(embed);
 
-            if (failed.length > 0) {
-                let pages = [];
-                for (let i = 0; i < failed.length; i += 10) {
-                    pages.push(failed.slice(i, i + 10).join("\n"));
-                }
+            // Envoi du log
+            let logsChannelId = db.get(`logmod_${message.guild.id}`);
+            const logsmod = message.guild.channels.cache.get(logsChannelId);
 
-                let page = 0;
-                let embed = new EmbedBuilder()
-                    .setTitle("❌ Membres n'ayant pas reçu le message")
-                    .setDescription(pages[page] || "Aucune erreur")
-                    .setFooter({ text: `Page ${page + 1}/${pages.length}` })
-                    .setColor("Red");
-
-                if (pages.length > 1) {
-                    let row = new ActionRowBuilder().addComponents(
-                        new ButtonBuilder().setCustomId('prev').setLabel('◀').setStyle(ButtonStyle.Secondary).setDisabled(page === 0),
-                        new ButtonBuilder().setCustomId('next').setLabel('▶').setStyle(ButtonStyle.Secondary).setDisabled(page === pages.length - 1)
-                    );
-
-                    let msg = await message.channel.send({ embeds: [embed], components: [row] });
-
-                    const collector = msg.createMessageComponentCollector({ filter: i => i.user.id === message.author.id, time: 60000 });
-
-                    collector.on('collect', async i => {
-                        if (i.customId === 'prev' && page > 0) page--;
-                        if (i.customId === 'next' && page < pages.length - 1) page++;
-
-                        embed.setDescription(pages[page]).setFooter({ text: `Page ${page + 1}/${pages.length}` });
-                        row.components[0].setDisabled(page === 0);
-                        row.components[1].setDisabled(page === pages.length - 1);
-
-                        await i.update({ embeds: [embed], components: [row] });
-                    });
-                } else {
-                    message.channel.send({ embeds: [embed] });
-                }
+            if (logsmod) {
+                const logEmbed = new Discord.MessageEmbed()
+                    .setColor(color)
+                    .setAuthor(message.author.tag, message.author.displayAvatarURL({ dynamic: true }))
+                    .setDescription(`${message.author} a effectué un **dmall** sur ${targetRole ? targetRole : "tout le serveur"} *(ce dmall a touché ${success} membres)*`);
+                logsmod.send(logEmbed);
             }
         }
     }
-}
-    };
+};
