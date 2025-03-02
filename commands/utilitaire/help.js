@@ -80,7 +80,8 @@ module.exports = {
 - \`${client.config.prefix}allbot\`
 - \`${client.config.prefix}allbotadmin\`
 - \`${client.config.prefix}roleinfo <rôle>\`
-- \`${client.config.prefix}bringall\`
+- \`${client.config.prefix}bring <membre> <vocal>\`
+- \`${client.config.prefix}bringall <vocal>\`
 - \`${client.config.prefix}slowmode <salon> <durée>\`
 - \`${client.config.prefix}unban <membre>\`
 - \`${client.config.prefix}kick <membre> [raison]\`
@@ -229,7 +230,8 @@ module.exports = {
 			gestion.setDescription("*Les paramètres entre **`<...>`** sont obligatoire, alors que les paramètres entre **`[...]`** eux sont facultatifs*")
 			if (4 <= perm) gestion.addField(`\`${prefix}counter\``, "Permet de gérer les compteurs personnalisés sur le serveur")
 			if (4 <= perm) gestion.addField(`\`${prefix}embed\``, "Permet de crée un embed totalement personalisable")
-			if (4 <= perm) gestion.addField(`\`${prefix}bringall\``, "Permet de déplacer tout les membres dans un salon vocal précis")
+			if (4 <= perm) gestion.addField(`\`${prefix}bring <membre> <vocal>\``, "Permet de déplacer un membres dans un salon vocal précis")
+			if (4 <= perm) gestion.addField(`\`${prefix}bringall <vocal>\``, "Permet de déplacer tout les membres dans un salon vocal précis")
 			if (4 <= perm) gestion.addField(`\`${prefix}rolemembers <rôle>\``, "Permet de voir les membres ayant le rôle mentioné")
 			if (4 <= perm) gestion.addField(`\`${prefix}emoji <add/remove> <emoji>\``, "Permet d'ajouté ou d'enlevé un emoji du serveur")
 			if (4 <= perm) gestion.addField(`\`${prefix}giveaway\``, "Permet de crée un giveaway")
