@@ -1,16 +1,5 @@
 <h1 align="center">
-    Serial-Gestion - C'est un code polyvalent créé pour gérer automatiquement vos serveurs Discord. Ce nouveau bot à pour but de vous aider à gérer votre serveur en prenant en charge tous les aspects possibles :
-
-👮・modération
-👮・automodération
-🦺・antiraid
-🤖・captcha
-✅・reaction role
-🔊・vocaux temporaires
-📁・logs
-💡・générateur d'embeds
-🎁・giveaway
-💬・modification possible de tous les messages du bot
+    Ce nouveau code à pour but de vous aider à gérer votre serveur en prenant en charge tous les aspects possibles
 </h1>
 
 <p align="center">
@@ -21,6 +10,20 @@
 	<a href="https://deno.land" target="_blank">
     	<img src="https://img.shields.io/badge/Version-1.0.0-7DCDE3?style=for-the-badge" alt="Version">
 </p>
+
+# Que fais le Code ?
+```
+👮・Modération
+👮・Automodération
+🦺・Antiraid
+🤖・Captcha
+✅・Reaction Rôle
+🔊・Vocaux Temporaires
+📁・Logs
+💡・Générateur D'embeds
+🎁・Giveaway
+💬・Modification possible de tous les messages du bot
+```
 
 # Information
 ```
