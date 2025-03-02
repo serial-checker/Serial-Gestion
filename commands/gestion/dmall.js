@@ -15,27 +15,30 @@ module.exports = {
         });
 
         if (client.config.owner.includes(message.author.id) || db.get(`ownermd_${client.user.id}_${message.author.id}`) === true || perm) {
-            if (!args[0]) return message.channel.send("Veuillez spécifier un message à envoyer.");
+            if (!args[0] && message.attachments.size === 0) return message.channel.send("Veuillez spécifier un message ou un média à envoyer.");
 
             let targetRole = message.mentions.roles.first() || message.guild.roles.cache.get(args[0]);
             let content = targetRole ? args.slice(1).join(" ") : args.join(" ");
             let members = targetRole ? targetRole.members : message.guild.members.cache;
 
-            if (!content) return message.channel.send("Veuillez spécifier un message à envoyer.");
+            let attachments = message.attachments.map(att => att.url); // Récupération des fichiers
+
+            if (!content && attachments.length === 0) return message.channel.send("Veuillez spécifier un message ou un média à envoyer.");
             if (members.size === 0) return message.channel.send("Aucun membre trouvé pour cet envoi de message.");
 
             let success = 0, failed = 0;
 
-            await Promise.all(members.map(async member => {
+            for (const member of members.values()) {
                 if (!member.user.bot) {
                     try {
-                        await member.send(content);
+                        await member.send({ content: content || null, files: attachments.length > 0 ? attachments : [] });
                         success++;
                     } catch (err) {
                         failed++;
                     }
+                    await new Promise(res => setTimeout(res, 1500)); // Pause de 1,5s pour éviter le spam
                 }
-            }));
+            }
 
             const embed = new Discord.MessageEmbed()
                 .setColor(color)
