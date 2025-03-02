@@ -17,7 +17,7 @@ function sleep(ms) {
 }
 module.exports = {
 	name: 'ping',
-	aliases: ["speed"],
+	aliases: ["speed", "api"],
 
 	run: async (client, message, args, prefix, color) => {
 
