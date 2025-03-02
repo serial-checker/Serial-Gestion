@@ -1,6 +1,16 @@
 <h1 align="center">
-    Serial-Gestion - C'est un bot polyvalent créé pour gérer automatiquement vos serveurs Discord, doté d'outils de modération et d'administration à la pointe de la technologie 
-    Il n'est clairement plus d'actualité, mais si jamais vous ne trouvez pas mieux, il est fait pour vous !
+    Serial-Gestion - C'est un code polyvalent créé pour gérer automatiquement vos serveurs Discord. Ce nouveau bot à pour but de vous aider à gérer votre serveur en prenant en charge tous les aspects possibles :
+
+👮・modération
+👮・automodération
+🦺・antiraid
+🤖・captcha
+✅・reaction role
+🔊・vocaux temporaires
+📁・logs
+💡・générateur d'embeds
+🎁・giveaway
+💬・modification possible de tous les messages du bot
 </h1>
 
 <p align="center">
@@ -14,7 +24,7 @@
 
 # Information
 ```
-Pour lancer le bot, il vous faut la version de Node JS Version 16 (Au-Dessus de la Version 16 Oui, mais à ne pas dépasser et ne pas réduire en dessous de la version 16).
+Pour lancer le bot, il vous faut la version de node JS version 16
 ```
 
 # Module
@@ -44,7 +54,7 @@ Après avoir fait tout cela, vous pouvez enfin lancer votre bot en ouvrant un `I
 ```
 Si vous avez vraiment besoin d'aide après tout ces consignes merci de rejoinre le serveur discord dédié à ce script spécifique
 ```
-Lien Du Serveur Discord : (Soon...) [Server Support](https://discord.gg/XatcCeXBa9)
+Lien Du Serveur Discord : (Soon...) [Server Support](https://discord.gg/nnkaaYnVEH)
 
 # Credits
 ```
