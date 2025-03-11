@@ -22,19 +22,23 @@ module.exports = {
 
         // Gestion de la commande clear
         if (args[0] === 'clear') {
-            const target = message.mentions.members.first() || message.member;
+            const target = message.mentions.members.first() || message.guild.members.cache.get(args[1]) || message.member;
             db.delete(`prevnick_${message.guild.id}_${target.id}`);
             return message.channel.send(`Les anciens pseudos de **${target.displayName}** ont été supprimés.`);
         }
 
-        const user = message.mentions.members.first() || message.member;
+        // Récupération de l'utilisateur par mention ou ID
+        const user = message.mentions.members.first() || message.guild.members.cache.get(args[0]) || message.member;
+
         let prevNames = db.get(`prevnick_${message.guild.id}_${user.id}`) || [];
+
+        // Suppression des doublons
+        prevNames = [...new Map(prevNames.map(entry => [entry.nickname, entry])).values()];
 
         if (prevNames.length === 0) {
             return message.channel.send(`Aucun ancien pseudo trouvé pour **${user.displayName}**.`);
         }
 
-        // ✅ Correction ici : conversion correcte de la date en timestamp Discord
         let description = prevNames
             .map(entry => `<t:${Math.floor(entry.date / 1000)}:F> - **${entry.nickname}**`)
             .join('\n');
