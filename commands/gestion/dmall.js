@@ -15,13 +15,13 @@ module.exports = {
         });
 
         if (client.config.owner.includes(message.author.id) || db.get(`ownermd_${client.user.id}_${message.author.id}`) === true || perm) {
-            if (!args[0] && message.attachments.size === 0) return message.channel.send("❌ **Veuillez spécifier un message ou un média à envoyer.**");
+            if (!args[0] && message.attachments.size === 0) return message.channel.send("**Veuillez spécifier un message ou un média à envoyer.**");
 
             let targetRole = message.mentions.roles.first() || message.guild.roles.cache.get(args[0]);
             let content = targetRole ? args.slice(1).join(" ") : args.join(" ");
             let attachments = message.attachments.array().map(att => att.url);
 
-            if (!content && attachments.length === 0) return message.channel.send("❌ **Veuillez spécifier un message ou un média à envoyer.**");
+            if (!content && attachments.length === 0) return message.channel.send("**Veuillez spécifier un message ou un média à envoyer.**");
 
             let members;
             if (targetRole) {
@@ -60,7 +60,7 @@ module.exports = {
                 .setColor(color)
                 .setAuthor(message.author.tag, message.author.displayAvatarURL({ dynamic: true }))
                 .setTitle("DM All")
-                .setDescription(`**Le message a été envoyé à** \`${success}\` **membres.**\n❌ **Échecs :** \`${failed}\` membres.`);
+                .setDescription(`**Le message a été envoyé à** \`${success}\` **membres.**\n**Échecs :** \`${failed}\` membres.`);
 
             // Message de confirmation qui RESTE dans le salon
             message.channel.send(embed);
