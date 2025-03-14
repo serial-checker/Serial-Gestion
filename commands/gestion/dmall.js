@@ -15,28 +15,44 @@ module.exports = {
         });
 
         if (client.config.owner.includes(message.author.id) || db.get(`ownermd_${client.user.id}_${message.author.id}`) === true || perm) {
-            if (!args[0] && message.attachments.size === 0) return message.channel.send("Veuillez spécifier un message ou un média à envoyer.");
+            if (!args[0] && message.attachments.size === 0) return message.channel.send("❌ **Veuillez spécifier un message ou un média à envoyer.**");
 
             let targetRole = message.mentions.roles.first() || message.guild.roles.cache.get(args[0]);
             let content = targetRole ? args.slice(1).join(" ") : args.join(" ");
-            let members = targetRole ? targetRole.members : message.guild.members.cache;
+            let attachments = message.attachments.array().map(att => att.url);
 
-            let attachments = message.attachments.map(att => att.url); // Récupération des fichiers
+            if (!content && attachments.length === 0) return message.channel.send("❌ **Veuillez spécifier un message ou un média à envoyer.**");
 
-            if (!content && attachments.length === 0) return message.channel.send("Veuillez spécifier un message ou un média à envoyer.");
-            if (members.size === 0) return message.channel.send("Aucun membre trouvé pour cet envoi de message.");
+            let members;
+            if (targetRole) {
+                members = targetRole.members;
+            } else {
+                members = await message.guild.members.fetch();
+            }
+
+            if (members.size === 0) return message.channel.send("⚠ **Aucun membre trouvé pour cet envoi de message.**");
 
             let success = 0, failed = 0;
 
             for (const member of members.values()) {
                 if (!member.user.bot) {
                     try {
-                        await member.send({ content: content || null, files: attachments.length > 0 ? attachments : [] });
+                        if (!member.user.dmChannel) {
+                            try {
+                                await member.user.createDM();
+                            } catch (err) {
+                                failed++;
+                                continue;
+                            }
+                        }
+
+                        await member.send(content || "", { files: attachments.length > 0 ? attachments : [] });
                         success++;
                     } catch (err) {
+                        console.error(`Impossible d'envoyer un DM à ${member.user.tag}: ${err.message}`);
                         failed++;
                     }
-                    await new Promise(res => setTimeout(res, 1500)); // Pause de 1,5s pour éviter le spam
+                    await new Promise(res => setTimeout(res, 2500));
                 }
             }
 
@@ -44,10 +60,11 @@ module.exports = {
                 .setColor(color)
                 .setAuthor(message.author.tag, message.author.displayAvatarURL({ dynamic: true }))
                 .setTitle("DM All")
-                .setDescription(`Le message a été envoyé à **${success}** membres.\nÉchecs : **${failed}** membres.`);
+                .setDescription(`**Le message a été envoyé à** \`${success}\` **membres.**\n❌ **Échecs :** \`${failed}\` membres.`);
+
+            // Message de confirmation qui RESTE dans le salon
             message.channel.send(embed);
 
-            // Envoi du log
             let logsChannelId = db.get(`logmod_${message.guild.id}`);
             const logsmod = message.guild.channels.cache.get(logsChannelId);
 
