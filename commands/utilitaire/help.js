@@ -26,6 +26,7 @@ module.exports = {
 **__Public__**
 - \`${client.config.prefix}banner [membre]\`
 - \`${client.config.prefix}vanity\`
+- \`${client.config.prefix}nitro\`
 - \`${client.config.prefix}changelogs\`
 - \`${client.config.prefix}invite [membre]\`
 - \`${client.config.prefix}support\`
@@ -138,6 +139,7 @@ module.exports = {
 - \`${client.config.prefix}soutien\`
 - \`${client.config.prefix}tempvoc\`
 - \`${client.config.prefix}welcome\`
+- \`${client.config.prefix}checkreact [ping] <rôle> <message>\`
 - \`${client.config.prefix}mybot\`
 `)
 					.setFooter(`Prefix : ${prefix} • ${client.config.name}`)
@@ -175,6 +177,7 @@ module.exports = {
                 if (2 <= perm) util.addField(`\`${prefix}roleinfo <rôle>\``, "Permet de d'avoir des informations sur un rôle")
             	if (2 <= perm) util.addField(`\`${prefix}slowmode <salon> <durée>\``, "Change la durée du mode lent sur un salon max 6h")
 			util.addField(`\`${prefix}banner [membre]\``, "Permet de voir la bannière d'un utilisateur")
+			util.addField(`\`${prefix}nitro\``, "Permet de générer aléatoirement un code nitro")
 			util.addField(`\`${prefix}vanity\``, "Permet d'obtenir le lien personalisé du serveur si le serveur en posséde un")
 			util.addField(`\`${prefix}changelogs\``, "Permet de voir les derniers changement du bot")
 			util.addField(`\`${prefix}calc\``, "Permet d'éffectuer un calcul avec le bot")
@@ -220,6 +223,7 @@ module.exports = {
 			if (4 <= perm) mods.addField(`\`${prefix}unban all\``, "Permet de debannir tout les membres du serveur")
 			if (4 <= perm) mods.addField(`\`${prefix}unlock all\``, "Permet de réouvir tout les salons du serveur pour le rôle @everyone")
 			if (4 <= perm) mods.addField(`\`${prefix}unmute all\``, "Permet de demute tout les membres muet sur le serveur")
+			if (4 <= perm) mods.addField(`\`${prefix}checkreact [ping] <rôle> <message>\``, "Permet d'afficher la liste des utilisateurs ayant réagi à un message spécifique avec une certaine réaction. Elle récupère les réactions d'un message donné et affiche les noms des utilisateurs qui ont utilisé l'emoji concerné.")
 
 
 			const gestion = new Discord.MessageEmbed()
