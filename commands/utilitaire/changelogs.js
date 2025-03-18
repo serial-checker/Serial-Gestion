@@ -35,9 +35,12 @@ module.exports = {
                 "• 👄 **`fakesay`** : *La commande envoie un message en se faisant passer pour un membre*\n" +
                 "• 🕰️ **`slowmode`** : *Active le mode lent dans un salon (max 6h).*\n" +
                 "• 🚀 **`dmall`** : *Permet d'envoyer un message en fonction du rôle choisis à tout les membres le possédant*\n" +
+                "• 🎁 **`nitro`** : *Permet d'envoyer un code nitro*\n" +
+                "• 📍 **`checkreact`** : *Permet d'afficher la liste des utilisateurs ayant réagi à un message spécifique avec une certaine réaction. Elle récupère les réactions d'un message donné et affiche les noms des utilisateurs qui ont utilisé l'emoji concerné.*\n" +                       
                 "• 🤖 **`mybot`** : *Affiche tous les bots perso que vous possedez*\n\u200B")
             .addField("🔧 **Rework :**", 
                 "• 🎯 **`top rank`** & **`top invite`** : *Amélioration des classements.*\n" +
+                "• 🔞 **`porngif`** : *Ajout de catégorie*\n" +
                 "• 🎨 **`help`** & **`help all`** : *Rework esthétique.*\n" +
                 "• 🔑 **Permissions :** *Amélioration de la gestion des accès sur toutes les commandes.*\n\u200B")
             .addField("📊 **Logs ajoutées :**", 
