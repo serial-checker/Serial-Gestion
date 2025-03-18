@@ -64,13 +64,13 @@ client.on('voiceStateUpdate', (oldState, newState) => {
 
 client.on("voiceStateUpdate", (oldState, newState) => {
     if (!oldState.channel && newState.channel) {
-        require('./events/logs/VoiceChannelJoin.js')(client, newState.member, newState.channel);
+        require('./events/logs/voiceChannelJoin.js')(client, newState.member, newState.channel);
     }
 });
 
 client.on("voiceStateUpdate", (oldState, newState) => {
     if (oldState.channel && !newState.channel) {
-        require('./events/logs/VoiceChannelLeave.js')(client, oldState.member, oldState.channel);
+        require('./events/logs/voiceChannelLeave.js')(client, oldState.member, oldState.channel);
     }
 });
 
