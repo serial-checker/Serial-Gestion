@@ -62,6 +62,30 @@ client.on('voiceStateUpdate', (oldState, newState) => {
     require('./events/logs/VoiceChannelSwitch')(client, oldState, newState);
 });
 
+client.on("voiceStateUpdate", (oldState, newState) => {
+    if (!oldState.channel && newState.channel) {
+        require('./events/logs/VoiceChannelJoin.js')(client, newState.member, newState.channel);
+    }
+});
+
+client.on("voiceStateUpdate", (oldState, newState) => {
+    if (oldState.channel && !newState.channel) {
+        require('./events/logs/VoiceChannelLeave.js')(client, oldState.member, oldState.channel);
+    }
+});
+
+client.on("voiceStateUpdate", (oldState, newState) => {
+    // Détection du début du partage d'écran
+    if (!oldState.streaming && newState.streaming) {
+        require('./events/logs/voiceStreamingStart.js')(client, oldState.member, oldState.channel);
+    }
+
+    // Détection de l'arrêt du partage d'écran
+    if (oldState.streaming && !newState.streaming) {
+		require('./events/logs/voiceStreamingStop.js')(client, oldState.member, oldState.channel);
+    }
+});
+
 
 const fs = require('fs');
 const path = require('path');
