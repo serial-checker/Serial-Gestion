@@ -20,7 +20,7 @@ module.exports = {
 				.setColor(color)
 				.setFooter(`Prefix : ${prefix}`)
 				.setTitle("Liste des commandes par permissions")
-				.setTimestamp()
+				
 				.setDescription(`
 
 **__Public__**
