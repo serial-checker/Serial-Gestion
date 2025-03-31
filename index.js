@@ -48,6 +48,14 @@ const loadCommands = (dir = "./commands/") => {
 	});
 };
 
+const channelFilter = require("./util/channelFilter.js");
+
+client.on("message", async (message) => {
+    if (channelFilter(message)) return; // Ignore les salons incompatibles
+
+    // Le reste de ton traitement de commande
+});
+
 const voiceMuteLogs = require("./events/logs/voiceMuteLogs.js");
 
 client.on("voiceStateUpdate", (oldState, newState) => {
