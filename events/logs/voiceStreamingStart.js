@@ -4,19 +4,21 @@ const Discord = require("discord.js");
 const ms = require("ms");
 
 module.exports = (client, member, voiceChannel) => {
+    // Vérification que le salon vocal existe
+    if (!voiceChannel) return;
 
-    const color = db.get(`color_${member.guild.id}`) === null ? client.config.color : db.get(`color_${member.guild.id}`);
-    let wass = db.get(`logvc_${voiceChannel.guild.id}`);
-    const logschannel = voiceChannel.guild.channels.cache.get(wass);
+    const color = db.get(`color_${member.guild.id}`) ?? client.config.color;
+    let wass = db.get(`logvc_${member.guild.id}`);
+    if (!wass) return;
 
-    // Si un canal de log est défini
-    if (logschannel) {
-        const embed = new Discord.MessageEmbed()
-            .setColor(color)
-            .setAuthor(`${member.user.username}`, member.user.displayAvatarURL({ dynamic: true }))
-            .setDescription(`${member} partage son écran dans ${voiceChannel.name}`)
+    const logschannel = member.guild.channels.cache.get(wass);
+    if (!logschannel) return;
 
-        // Envoi de l'embed dans le canal de logs
-        logschannel.send(embed);
-    }
+    // Création et envoi de l'embed de log
+    const embed = new Discord.MessageEmbed()
+        .setColor(color)
+        .setAuthor(`${member.user.username}`, member.user.displayAvatarURL({ dynamic: true }))
+        .setDescription(`${member} partage son écran dans ${voiceChannel.name}`);
+
+    logschannel.send(embed);
 };
